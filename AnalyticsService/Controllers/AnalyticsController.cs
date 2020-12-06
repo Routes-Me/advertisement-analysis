@@ -30,9 +30,9 @@ namespace AnalyticsService.Controllers
 
         [HttpGet]
         [Route("analytics/promotions")]
-        public IActionResult Get(string Include, [FromQuery] Pagination pageInfo)
+        public IActionResult Get(string Include, string type, [FromQuery] Pagination pageInfo)
         {
-            dynamic response = _analyticsRepository.GetAnalytics(Include, pageInfo);
+            dynamic response = _analyticsRepository.GetAnalytics(Include, type, pageInfo);
             return StatusCode((int)response.statusCode, response);
         }
     }

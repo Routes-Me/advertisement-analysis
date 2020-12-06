@@ -46,4 +46,9 @@ namespace AnalyticsService.Models
         }
     }
 
+    public class GetAnalyticsResponse : Response
+    {
+        public DateTime? CreatedAt { get; set; }
+    }
+
 }

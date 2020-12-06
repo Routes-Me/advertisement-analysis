@@ -10,6 +10,6 @@ namespace AnalyticsService.Abstraction
     public interface IAnalyticsRepository
     {
         dynamic InsertAnalytics(AnalyticsModel model);
-        dynamic GetAnalytics(string include, Pagination pageInfo);
+        dynamic GetAnalytics(string include, string type, Pagination pageInfo);
     }
 }
