@@ -59,6 +59,8 @@ namespace AnalyticsService
             var appSettings = appSettingsSection.Get<AppSettings>();
 
             services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+            services.AddScoped<IIncludedRepository, IncludedRepository>();
+            
         }
 
 

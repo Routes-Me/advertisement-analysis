@@ -1,6 +1,8 @@
 ﻿using AnalyticsService.Models.DBModels;
 using AnalyticsService.Models.ResponseModel;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,5 +59,19 @@ namespace AnalyticsService.Models
     {
         public Pagination pagination { get; set; }
         public List<PromotionAnalyticsModel> data { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public JObject included { get; set; }
     }
+    public class AdvertisementData
+    {
+        public Pagination pagination { get; set; }
+        public List<AdvertisementsModel> data { get; set; }
+    }
+
+    public class InstitutionsData
+    {
+        public Pagination pagination { get; set; }
+        public List<InstitutionsModel> data { get; set; }
+    }
+
 }

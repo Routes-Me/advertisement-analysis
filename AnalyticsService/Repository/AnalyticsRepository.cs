@@ -5,6 +5,7 @@ using AnalyticsService.Models.DBModels;
 using AnalyticsService.Models.ResponseModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using Obfuscation;
 using System;
 using System.Collections.Generic;
@@ -17,11 +18,13 @@ namespace AnalyticsService.Repository
     {
         private readonly AppSettings _appSettings;
         private readonly analyticsserviceContext _context;
+        private readonly IIncludedRepository _includedRepository;
 
-        public AnalyticsRepository(IOptions<AppSettings> appSettings, analyticsserviceContext context)
+        public AnalyticsRepository(IOptions<AppSettings> appSettings, analyticsserviceContext context, IIncludedRepository includedRepository)
         {
             _appSettings = appSettings.Value;
             _context = context;
+            _includedRepository = includedRepository;
         }
         public dynamic GetAnalytics(string include, string type, Pagination pageInfo)
         {
@@ -179,13 +182,13 @@ namespace AnalyticsService.Repository
             }
         }
 
-        public dynamic GetAnalyticsData(string analyticsId, string start_at, string end_at, Pagination pageInfo)
+        public dynamic GetAnalyticsData(string analyticsId, string start_at, string end_at, string includeType, Pagination pageInfo)
         {
             try
             {
                 GetAnalyticsDataResponse response = new GetAnalyticsDataResponse();
                 int analyticsIdDecrypt = ObfuscationClass.DecodeId(Convert.ToInt32(analyticsId), _appSettings.PrimeInverse);
-                List<PromotionAnalyticsModel> linkModelList = new List<PromotionAnalyticsModel>();
+                List<PromotionAnalyticsModel> analyticsModelList = new List<PromotionAnalyticsModel>();
                 int totalCount = 0;
                 DateTime? startAt = null;
                 DateTime? endAt = null;
@@ -200,7 +203,7 @@ namespace AnalyticsService.Repository
                 {
                     if (startAt == null && endAt == null)
                     {
-                        linkModelList = (from analytics in _context.PromotionAnalytics
+                        analyticsModelList = (from analytics in _context.PromotionAnalytics
                                          select new PromotionAnalyticsModel()
                                          {
                                              AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
@@ -215,7 +218,7 @@ namespace AnalyticsService.Repository
                     }
                     else
                     {
-                        linkModelList = (from analytics in _context.PromotionAnalytics
+                        analyticsModelList = (from analytics in _context.PromotionAnalytics
                                          where analytics.CreatedAt >= startAt && analytics.CreatedAt <= endAt
                                          select new PromotionAnalyticsModel()
                                          {
@@ -235,7 +238,7 @@ namespace AnalyticsService.Repository
                 {
                     if (start_at == null && end_at == null)
                     {
-                        linkModelList = (from analytics in _context.PromotionAnalytics
+                        analyticsModelList = (from analytics in _context.PromotionAnalytics
                                          where analytics.AnalyticId == analyticsIdDecrypt
                                          select new PromotionAnalyticsModel()
                                          {
@@ -251,7 +254,7 @@ namespace AnalyticsService.Repository
                     }
                     else
                     {
-                        linkModelList = (from analytics in _context.PromotionAnalytics
+                        analyticsModelList = (from analytics in _context.PromotionAnalytics
                                          where analytics.AnalyticId == analyticsIdDecrypt && analytics.CreatedAt >= startAt && analytics.CreatedAt <= endAt
                                          select new PromotionAnalyticsModel()
                                          {
@@ -267,7 +270,6 @@ namespace AnalyticsService.Repository
                     }
                 }
 
-
                 var page = new Pagination
                 {
                     offset = pageInfo.offset,
@@ -275,11 +277,32 @@ namespace AnalyticsService.Repository
                     total = totalCount
                 };
 
+                dynamic includeData = new JObject();
+                if (!string.IsNullOrEmpty(includeType))
+                {
+                    string[] includeArr = includeType.Split(',');
+                    if (includeArr.Length > 0)
+                    {
+                        foreach (var item in includeArr)
+                        {
+                            if (item.ToLower() == "institution" || item.ToLower() == "institutions")
+                            {
+                                includeData.institutions = _includedRepository.GetInstitutionsIncludedData(analyticsModelList);
+                            }
+                            else if (item.ToLower() == "advertisement" || item.ToLower() == "advertisements")
+                            {
+                                includeData.advertisements = _includedRepository.GetAdvertisementsIncludedData(analyticsModelList);
+                            }
+                        }
+                    }
+                }
+
                 response.status = true;
                 response.statusCode = StatusCodes.Status200OK;
                 response.message = CommonMessage.AnalyticsRetrived;
                 response.pagination = page;
-                response.data = linkModelList;
+                response.data = analyticsModelList;
+                response.included = includeData;
                 return response;
             }
             catch (Exception ex)
