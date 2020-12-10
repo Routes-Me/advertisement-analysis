@@ -1,4 +1,5 @@
 ﻿using AnalyticsService.Models;
+using AnalyticsService.Models.DBModels;
 using AnalyticsService.Models.ResponseModel;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,10 @@ namespace AnalyticsService.Abstraction
     public interface IAnalyticsRepository
     {
         dynamic InsertAnalytics(AnalyticsModel model);
+        public dynamic InsertLinksLog(LinkLogsModel model);
         dynamic GetAnalytics(string include, string type, Pagination pageInfo);
+        void InsertAnalyticsFromLinks();
+
+        dynamic GetAnalyticsData(string analyticsId, string start_at, string end_at, Pagination pageInfo);
     }
 }

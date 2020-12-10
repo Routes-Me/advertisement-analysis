@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AnalyticsService.Models.DBModels;
+using AnalyticsService.Models.ResponseModel;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,4 +53,9 @@ namespace AnalyticsService.Models
         public DateTime? CreatedAt { get; set; }
     }
 
+    public class GetAnalyticsDataResponse : Response
+    {
+        public Pagination pagination { get; set; }
+        public List<PromotionAnalyticsModel> data { get; set; }
+    }
 }
