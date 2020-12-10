@@ -48,9 +48,9 @@ namespace AnalyticsService.Controllers
 
         [HttpGet]
         [Route("analytics/promotions/{id=0}")]
-        public IActionResult GetAnalyticsData(string analyticsId, string start_at, string end_at, [FromQuery] Pagination pageInfo)
+        public IActionResult GetAnalyticsData(string id, string start_at, string end_at, [FromQuery] Pagination pageInfo)
         {
-            dynamic response = _analyticsRepository.GetAnalyticsData(analyticsId, start_at, end_at, pageInfo);
+            dynamic response = _analyticsRepository.GetAnalyticsData(id, start_at, end_at, pageInfo);
             return StatusCode((int)response.statusCode, response);
         }
     }
