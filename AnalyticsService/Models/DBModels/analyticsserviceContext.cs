@@ -18,7 +18,6 @@ namespace AnalyticsService.Models.DBModels
         public virtual DbSet<LinkLogs> LinkLogs { get; set; }
         public virtual DbSet<PromotionAnalytics> PromotionAnalytics { get; set; }
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<LinkLogs>(entity =>
@@ -29,6 +28,8 @@ namespace AnalyticsService.Models.DBModels
                 entity.ToTable("link_logs");
 
                 entity.Property(e => e.LinkLogId).HasColumnName("link_log_id");
+
+                entity.Property(e => e.AdvertismentId).HasColumnName("advertisment_id");
 
                 entity.Property(e => e.ClientBrowser)
                     .HasColumnName("client_browser")
@@ -45,6 +46,8 @@ namespace AnalyticsService.Models.DBModels
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("created_at")
                     .HasColumnType("timestamp");
+
+                entity.Property(e => e.InstitutionId).HasColumnName("institution_id");
 
                 entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
             });
@@ -66,11 +69,13 @@ namespace AnalyticsService.Models.DBModels
                     .HasColumnName("created_at")
                     .HasColumnType("timestamp");
 
+                entity.Property(e => e.InstitutionId).HasColumnName("institution_id");
+
                 entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
 
                 entity.Property(e => e.Type)
                     .HasColumnName("type")
-                    .HasColumnType("enum('coupons','links','places')")
+                    .HasColumnType("enum('copouns','links','places')")
                     .HasCharSet("utf8mb4")
                     .HasCollation("utf8mb4_0900_ai_ci");
             });
