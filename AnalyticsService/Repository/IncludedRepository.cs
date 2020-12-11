@@ -49,22 +49,8 @@ namespace AnalyticsService.Repository
 
         public dynamic GetInstitutionsIncludedData(List<PromotionAnalyticsModel> analyticsModelList)
         {
-            List<AdvertisementsModel> lstAdvertisements = new List<AdvertisementsModel>();
             List<InstitutionsModel> lstInstitutions = new List<InstitutionsModel>();
             foreach (var item in analyticsModelList)
-            {
-                var client = new RestClient(_appSettings.Host + _dependencies.AdvertisementsUrl + item.AdvertismentId);
-                var request = new RestRequest(Method.GET);
-                IRestResponse response = client.Execute(request);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    var result = response.Content;
-                    var advertisementsData = JsonConvert.DeserializeObject<AdvertisementData>(result);
-                    lstAdvertisements.AddRange(advertisementsData.data);
-                }
-            }
-            var advertisementList = lstAdvertisements.GroupBy(x => x.AdvertisementId).Select(a => a.First()).ToList();
-            foreach (var item in advertisementList)
             {
                 var client = new RestClient(_appSettings.Host + _dependencies.InstitutionUrl + item.InstitutionId);
                 var request = new RestRequest(Method.GET);

@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 
 namespace AnalyticsService.Models.ResponseModel
 {
-    public class PromotionAnalyticsModel
+    public class LinkLogsModel
     {
-        public string AnalyticId { get; set; }
+        public string LinkLogId { get; set; }
         public string PromotionId { get; set; }
-        public string AdvertismentId { get; set; }
+        public string AdvertisementId { get; set; }
         public string InstitutionId { get; set; }
-        public int? Count { get; set; }
+        public string ClientBrowser { get; set; }
+        public string ClientOs { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public string Type { get; set; }
     }
 }

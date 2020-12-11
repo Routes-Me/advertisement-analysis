@@ -54,11 +54,13 @@ namespace AnalyticsService
                 c.CronExpression = @"0 */5 * * *"; // Run every 5 hours
             });
 
-            var appSettingsSection = Configuration.GetSection("AppSettings");
-            services.Configure<AppSettings>(appSettingsSection);
-            var appSettings = appSettingsSection.Get<AppSettings>();
+            services.Configure<Dependencies>(Configuration.GetSection("Dependencies"));
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
+            var appSettingsSection = Configuration.GetSection("AppSettings");
+            var appSettings = appSettingsSection.Get<AppSettings>();
             services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+
             services.AddScoped<IIncludedRepository, IncludedRepository>();
             
         }

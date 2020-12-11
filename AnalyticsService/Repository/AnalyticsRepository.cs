@@ -62,6 +62,7 @@ namespace AnalyticsService.Repository
                 {
                     int promotionId = ObfuscationClass.DecodeId(Convert.ToInt32(item.PromotionId), _appSettings.PrimeInverse);
                     int advertismentId = ObfuscationClass.DecodeId(Convert.ToInt32(item.AdvertismentId), _appSettings.PrimeInverse);
+                    int institutionId = ObfuscationClass.DecodeId(Convert.ToInt32(item.InstitutionId), _appSettings.PrimeInverse);
 
                     if (Convert.ToDateTime(item.CreatedAt).Date == DateTime.Now.Date)
                     {
@@ -71,6 +72,7 @@ namespace AnalyticsService.Repository
                             PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
                             promotionAnalytics.PromotionId = promotionId;
                             promotionAnalytics.AdvertismentId = advertismentId;
+                            promotionAnalytics.InstitutionId = institutionId;
                             promotionAnalytics.Count = item.Count;
                             promotionAnalytics.Type = item.Type;
                             promotionAnalytics.CreatedAt = DateTime.Now;
@@ -90,6 +92,7 @@ namespace AnalyticsService.Repository
                         PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
                         promotionAnalytics.PromotionId = promotionId;
                         promotionAnalytics.AdvertismentId = advertismentId;
+                        promotionAnalytics.InstitutionId = institutionId;
                         promotionAnalytics.Count = item.Count;
                         promotionAnalytics.Type = item.Type;
                         promotionAnalytics.CreatedAt = DateTime.Now;
@@ -114,11 +117,13 @@ namespace AnalyticsService.Repository
                     return ReturnResponse.ErrorResponse(CommonMessage.EmptyModel, StatusCodes.Status400BadRequest);
 
                 int promotionId = ObfuscationClass.DecodeId(Convert.ToInt32(model.PromotionId), _appSettings.PrimeInverse);
-                //int advertismentId = ObfuscationClass.DecodeId(Convert.ToInt32(model.AdvertismentId), _appSettings.PrimeInverse);
+                int advertismentId = ObfuscationClass.DecodeId(Convert.ToInt32(model.AdvertisementId), _appSettings.PrimeInverse);
+                int institutionId = ObfuscationClass.DecodeId(Convert.ToInt32(model.InstitutionId), _appSettings.PrimeInverse);
 
                 LinkLogs linkLogs = new LinkLogs();
                 linkLogs.PromotionId = promotionId;
-                //linkLogs.AdvertismentId = advertismentId;
+                linkLogs.AdvertismentId = advertismentId;
+                linkLogs.InstitutionId = institutionId;
                 linkLogs.ClientBrowser = model.ClientBrowser;
                 linkLogs.ClientOs = model.ClientOs;
                 linkLogs.CreatedAt = DateTime.Now;
@@ -144,17 +149,18 @@ namespace AnalyticsService.Repository
 
             if (lastCouponDate != null)
             {
-                var redemptions = _context.LinkLogs.Where(x => x.CreatedAt > lastCouponDate).ToList();
-                if (redemptions != null && redemptions.Count > 0)
+                var linkLogs = _context.LinkLogs.Where(x => x.CreatedAt > lastCouponDate).ToList();
+                if (linkLogs != null && linkLogs.Count > 0)
                 {
-                    foreach (var group in redemptions.GroupBy(x => x.PromotionId))
+                    foreach (var group in linkLogs.GroupBy(x => x.PromotionId))
                     {
                         var items = group.FirstOrDefault();
                         PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
                         promotionAnalytics.PromotionId = items.PromotionId;
-                        //promotionAnalytics.AdvertismentId = items.advertisementId;
+                        promotionAnalytics.AdvertismentId = items.AdvertismentId;
+                        promotionAnalytics.InstitutionId = items.InstitutionId;
                         promotionAnalytics.CreatedAt = DateTime.Now;
-                        promotionAnalytics.Count = group.Key;
+                        promotionAnalytics.Count = group.Count();
                         promotionAnalytics.Type = "links";
                         _context.PromotionAnalytics.Add(promotionAnalytics);
                         _context.SaveChanges();
@@ -163,17 +169,18 @@ namespace AnalyticsService.Repository
             }
             else
             {
-                var redemptions = _context.LinkLogs.ToList();
-                if (redemptions != null && redemptions.Count > 0)
+                var linkLogs = _context.LinkLogs.ToList();
+                if (linkLogs != null && linkLogs.Count > 0)
                 {
-                    foreach (var group in redemptions.GroupBy(x => x.PromotionId))
+                    foreach (var group in linkLogs.GroupBy(x => x.AdvertismentId))
                     {
                         var items = group.FirstOrDefault();
                         PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
                         promotionAnalytics.PromotionId = items.PromotionId;
-                        //promotionAnalytics.AdvertismentId = items.advertisementId;
+                        promotionAnalytics.AdvertismentId = items.AdvertismentId;
+                        promotionAnalytics.InstitutionId = items.InstitutionId;
                         promotionAnalytics.CreatedAt = DateTime.Now;
-                        promotionAnalytics.Count = group.Key;
+                        promotionAnalytics.Count = group.Count();
                         promotionAnalytics.Type = "links";
                         _context.PromotionAnalytics.Add(promotionAnalytics);
                         _context.SaveChanges();
@@ -204,31 +211,33 @@ namespace AnalyticsService.Repository
                     if (startAt == null && endAt == null)
                     {
                         analyticsModelList = (from analytics in _context.PromotionAnalytics
-                                         select new PromotionAnalyticsModel()
-                                         {
-                                             AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
-                                             PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                             AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                             Count = analytics.Count,
-                                             CreatedAt = analytics.CreatedAt,
-                                             Type = analytics.Type
-                                         }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
+                                              select new PromotionAnalyticsModel()
+                                              {
+                                                  AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
+                                                  PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  Count = analytics.Count,
+                                                  CreatedAt = analytics.CreatedAt,
+                                                  Type = analytics.Type
+                                              }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
 
                         totalCount = _context.PromotionAnalytics.ToList().Count();
                     }
                     else
                     {
                         analyticsModelList = (from analytics in _context.PromotionAnalytics
-                                         where analytics.CreatedAt >= startAt && analytics.CreatedAt <= endAt
-                                         select new PromotionAnalyticsModel()
-                                         {
-                                             AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
-                                             PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                             AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                             Count = analytics.Count,
-                                             CreatedAt = analytics.CreatedAt,
-                                             Type = analytics.Type
-                                         }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
+                                              where analytics.CreatedAt >= startAt && analytics.CreatedAt <= endAt
+                                              select new PromotionAnalyticsModel()
+                                              {
+                                                  AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
+                                                  PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  Count = analytics.Count,
+                                                  CreatedAt = analytics.CreatedAt,
+                                                  Type = analytics.Type
+                                              }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
 
                         totalCount = _context.PromotionAnalytics.ToList().Count();
                     }
@@ -239,32 +248,34 @@ namespace AnalyticsService.Repository
                     if (start_at == null && end_at == null)
                     {
                         analyticsModelList = (from analytics in _context.PromotionAnalytics
-                                         where analytics.AnalyticId == analyticsIdDecrypt
-                                         select new PromotionAnalyticsModel()
-                                         {
-                                             AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
-                                             PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                             AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                             Count = analytics.Count,
-                                             CreatedAt = analytics.CreatedAt,
-                                             Type = analytics.Type
-                                         }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
+                                              where analytics.AnalyticId == analyticsIdDecrypt
+                                              select new PromotionAnalyticsModel()
+                                              {
+                                                  AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
+                                                  PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  Count = analytics.Count,
+                                                  CreatedAt = analytics.CreatedAt,
+                                                  Type = analytics.Type
+                                              }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
 
                         totalCount = _context.PromotionAnalytics.Where(x => x.AnalyticId == analyticsIdDecrypt).ToList().Count();
                     }
                     else
                     {
                         analyticsModelList = (from analytics in _context.PromotionAnalytics
-                                         where analytics.AnalyticId == analyticsIdDecrypt && analytics.CreatedAt >= startAt && analytics.CreatedAt <= endAt
-                                         select new PromotionAnalyticsModel()
-                                         {
-                                             AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
-                                             PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                             AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                             Count = analytics.Count,
-                                             CreatedAt = analytics.CreatedAt,
-                                             Type = analytics.Type
-                                         }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
+                                              where analytics.AnalyticId == analyticsIdDecrypt && analytics.CreatedAt >= startAt && analytics.CreatedAt <= endAt
+                                              select new PromotionAnalyticsModel()
+                                              {
+                                                  AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
+                                                  PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  Count = analytics.Count,
+                                                  CreatedAt = analytics.CreatedAt,
+                                                  Type = analytics.Type
+                                              }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
 
                         totalCount = _context.PromotionAnalytics.Where(x => x.AnalyticId == analyticsIdDecrypt).ToList().Count();
                     }
