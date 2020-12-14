@@ -12,7 +12,7 @@ namespace AnalyticsService.Abstraction
     {
         dynamic InsertAnalytics(AnalyticsModel model);
         public dynamic InsertLinksLog(LinkLogsModel model);
-        public dynamic InsertPlaybacks(PlaybacksModel model);
+        public dynamic InsertPlaybacks(List<PlaybacksModel> model);
         dynamic GetAnalytics(string include, string type, Pagination pageInfo);
         void InsertAnalyticsFromLinks();
 

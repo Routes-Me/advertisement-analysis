@@ -139,25 +139,28 @@ namespace AnalyticsService.Repository
             }
         }
 
-        public dynamic InsertPlaybacks(PlaybacksModel model)
+        public dynamic InsertPlaybacks(List<PlaybacksModel> model)
         {
             try
             {
                 if (model == null)
                     return ReturnResponse.ErrorResponse(CommonMessage.EmptyModel, StatusCodes.Status400BadRequest);
 
-                int deviceId = ObfuscationClass.DecodeId(Convert.ToInt32(model.DeviceId), _appSettings.PrimeInverse);
-                int advertismentId = ObfuscationClass.DecodeId(Convert.ToInt32(model.AdvertisementId), _appSettings.PrimeInverse);
+                foreach (var playback in model)
+                {
+                    int deviceId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.DeviceId), _appSettings.PrimeInverse);
+                    int advertismentId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.AdvertisementId), _appSettings.PrimeInverse);
 
-                Playbacks playbacks = new Playbacks();
-                playbacks.DeviceId = deviceId;
-                playbacks.AdvertisementId = advertismentId;
-                playbacks.Date = DateTime.Now;
-                playbacks.Count = model.Count;
-                playbacks.MediaType = model.MediaType;
-                playbacks.Length = model.Length;
-                _context.Playbacks.Add(playbacks);
-                _context.SaveChanges();
+                    Playbacks playbacks = new Playbacks();
+                    playbacks.DeviceId = deviceId;
+                    playbacks.AdvertisementId = advertismentId;
+                    playbacks.Date = DateTime.Now;
+                    playbacks.Count = playback.Count;
+                    playbacks.MediaType = playback.MediaType;
+                    playbacks.Length = playback.Length;
+                    _context.Playbacks.Add(playbacks);
+                    _context.SaveChanges();
+                }
 
 
                 return ReturnResponse.SuccessResponse(CommonMessage.AnalyticsInsert, true);

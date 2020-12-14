@@ -40,7 +40,7 @@ namespace AnalyticsService.Controllers
 
         [HttpPost]
         [Route("analytics/playbacks")]
-        public IActionResult PostPlaybacks(PlaybacksModel model)
+        public IActionResult PostPlaybacks(List<PlaybacksModel> model)
         {
             dynamic response = _analyticsRepository.InsertPlaybacks(model);
             return StatusCode((int)response.statusCode, response);
