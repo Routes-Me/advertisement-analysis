@@ -38,6 +38,14 @@ namespace AnalyticsService.Controllers
             return StatusCode((int)response.statusCode, response);
         }
 
+        [HttpPost]
+        [Route("analytics/playbacks")]
+        public IActionResult PostPlaybacks(PlaybacksModel model)
+        {
+            dynamic response = _analyticsRepository.InsertPlaybacks(model);
+            return StatusCode((int)response.statusCode, response);
+        }
+
         [HttpGet]
         [Route("analytics/promotions/lastdate")]
         public IActionResult Get(string Include, string type, [FromQuery] Pagination pageInfo)

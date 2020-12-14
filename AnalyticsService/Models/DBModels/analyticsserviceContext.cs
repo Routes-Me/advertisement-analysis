@@ -17,6 +17,7 @@ namespace AnalyticsService.Models.DBModels
 
         public virtual DbSet<LinkLogs> LinkLogs { get; set; }
         public virtual DbSet<PromotionAnalytics> PromotionAnalytics { get; set; }
+        public virtual DbSet<Playbacks> Playbacks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +51,33 @@ namespace AnalyticsService.Models.DBModels
                 entity.Property(e => e.InstitutionId).HasColumnName("institution_id");
 
                 entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
+            });
+
+            modelBuilder.Entity<Playbacks>(entity =>
+            {
+                entity.HasKey(e => e.PlaybackId).HasName("PRIMARY");
+
+                entity.ToTable("playbacks");
+
+                entity.Property(e => e.PlaybackId).HasColumnName("playback_id");
+
+                entity.Property(e => e.DeviceId).HasColumnName("device_id");
+
+                entity.Property(e => e.AdvertisementId).HasColumnName("advertisement_id");
+
+                entity.Property(e => e.Date)
+                    .HasColumnName("date")
+                    .HasColumnType("timestamp");
+
+                entity.Property(e => e.Count).HasColumnName("count");
+
+                entity.Property(e => e.MediaType)
+                    .HasColumnName("media_type")
+                    .HasColumnType("enum('video','image')")
+                    .HasCharSet("utf8mb4")
+                    .HasCollation("utf8mb4_0900_ai_ci");
+
+                entity.Property(e => e.Length).HasColumnName("length");
             });
 
             modelBuilder.Entity<PromotionAnalytics>(entity =>
