@@ -7,7 +7,7 @@ namespace AnalyticsService.Models.DBModels
     {
         public int LinkLogId { get; set; }
         public int? PromotionId { get; set; }
-        public int? AdvertismentId { get; set; }
+        public int? AdvertisementId { get; set; }
         public int? InstitutionId { get; set; }
         public string ClientBrowser { get; set; }
         public string ClientOs { get; set; }

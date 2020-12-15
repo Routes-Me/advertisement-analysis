@@ -30,7 +30,7 @@ namespace AnalyticsService.Models.DBModels
 
                 entity.Property(e => e.LinkLogId).HasColumnName("link_log_id");
 
-                entity.Property(e => e.AdvertismentId).HasColumnName("advertisment_id");
+                entity.Property(e => e.AdvertisementId).HasColumnName("advertisement_id");
 
                 entity.Property(e => e.ClientBrowser)
                     .HasColumnName("client_browser")
@@ -89,7 +89,7 @@ namespace AnalyticsService.Models.DBModels
 
                 entity.Property(e => e.AnalyticId).HasColumnName("analytic_id");
 
-                entity.Property(e => e.AdvertismentId).HasColumnName("advertisment_id");
+                entity.Property(e => e.AdvertisementId).HasColumnName("advertisement_id");
 
                 entity.Property(e => e.Count).HasColumnName("count");
 

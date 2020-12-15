@@ -61,17 +61,17 @@ namespace AnalyticsService.Repository
                 foreach (var item in model.analytics)
                 {
                     int promotionId = ObfuscationClass.DecodeId(Convert.ToInt32(item.PromotionId), _appSettings.PrimeInverse);
-                    int advertismentId = ObfuscationClass.DecodeId(Convert.ToInt32(item.AdvertismentId), _appSettings.PrimeInverse);
+                    int advertisementId = ObfuscationClass.DecodeId(Convert.ToInt32(item.AdvertisementId), _appSettings.PrimeInverse);
                     int institutionId = ObfuscationClass.DecodeId(Convert.ToInt32(item.InstitutionId), _appSettings.PrimeInverse);
 
                     if (Convert.ToDateTime(item.CreatedAt).Date == DateTime.Now.Date)
                     {
-                        var analytics = _context.PromotionAnalytics.Where(x => x.AdvertismentId == advertismentId && x.PromotionId == promotionId && x.Type == item.Type).FirstOrDefault();
+                        var analytics = _context.PromotionAnalytics.Where(x => x.AdvertisementId == advertisementId && x.PromotionId == promotionId && x.Type == item.Type).FirstOrDefault();
                         if (analytics == null)
                         {
                             PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
                             promotionAnalytics.PromotionId = promotionId;
-                            promotionAnalytics.AdvertismentId = advertismentId;
+                            promotionAnalytics.AdvertisementId = advertisementId;
                             promotionAnalytics.InstitutionId = institutionId;
                             promotionAnalytics.Count = item.Count;
                             promotionAnalytics.Type = item.Type;
@@ -91,7 +91,7 @@ namespace AnalyticsService.Repository
                     {
                         PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
                         promotionAnalytics.PromotionId = promotionId;
-                        promotionAnalytics.AdvertismentId = advertismentId;
+                        promotionAnalytics.AdvertisementId = advertisementId;
                         promotionAnalytics.InstitutionId = institutionId;
                         promotionAnalytics.Count = item.Count;
                         promotionAnalytics.Type = item.Type;
@@ -117,12 +117,12 @@ namespace AnalyticsService.Repository
                     return ReturnResponse.ErrorResponse(CommonMessage.EmptyModel, StatusCodes.Status400BadRequest);
 
                 int promotionId = ObfuscationClass.DecodeId(Convert.ToInt32(model.PromotionId), _appSettings.PrimeInverse);
-                int advertismentId = ObfuscationClass.DecodeId(Convert.ToInt32(model.AdvertisementId), _appSettings.PrimeInverse);
+                int advertisementId = ObfuscationClass.DecodeId(Convert.ToInt32(model.AdvertisementId), _appSettings.PrimeInverse);
                 int institutionId = ObfuscationClass.DecodeId(Convert.ToInt32(model.InstitutionId), _appSettings.PrimeInverse);
 
                 LinkLogs linkLogs = new LinkLogs();
                 linkLogs.PromotionId = promotionId;
-                linkLogs.AdvertismentId = advertismentId;
+                linkLogs.AdvertisementId = advertisementId;
                 linkLogs.InstitutionId = institutionId;
                 linkLogs.ClientBrowser = model.ClientBrowser;
                 linkLogs.ClientOs = model.ClientOs;
@@ -149,11 +149,11 @@ namespace AnalyticsService.Repository
                 foreach (var playback in model)
                 {
                     int deviceId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.DeviceId), _appSettings.PrimeInverse);
-                    int advertismentId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.AdvertisementId), _appSettings.PrimeInverse);
+                    int advertisementId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.AdvertisementId), _appSettings.PrimeInverse);
 
                     Playbacks playbacks = new Playbacks();
                     playbacks.DeviceId = deviceId;
-                    playbacks.AdvertisementId = advertismentId;
+                    playbacks.AdvertisementId = advertisementId;
                     playbacks.Date = DateTime.Now;
                     playbacks.Count = playback.Count;
                     playbacks.MediaType = playback.MediaType;
@@ -189,7 +189,7 @@ namespace AnalyticsService.Repository
                         var items = group.FirstOrDefault();
                         PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
                         promotionAnalytics.PromotionId = items.PromotionId;
-                        promotionAnalytics.AdvertismentId = items.AdvertismentId;
+                        promotionAnalytics.AdvertisementId = items.AdvertisementId;
                         promotionAnalytics.InstitutionId = items.InstitutionId;
                         promotionAnalytics.CreatedAt = DateTime.Now;
                         promotionAnalytics.Count = group.Count();
@@ -204,12 +204,12 @@ namespace AnalyticsService.Repository
                 var linkLogs = _context.LinkLogs.ToList();
                 if (linkLogs != null && linkLogs.Count > 0)
                 {
-                    foreach (var group in linkLogs.GroupBy(x => x.AdvertismentId))
+                    foreach (var group in linkLogs.GroupBy(x => x.AdvertisementId))
                     {
                         var items = group.FirstOrDefault();
                         PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
                         promotionAnalytics.PromotionId = items.PromotionId;
-                        promotionAnalytics.AdvertismentId = items.AdvertismentId;
+                        promotionAnalytics.AdvertisementId = items.AdvertisementId;
                         promotionAnalytics.InstitutionId = items.InstitutionId;
                         promotionAnalytics.CreatedAt = DateTime.Now;
                         promotionAnalytics.Count = group.Count();
@@ -247,7 +247,7 @@ namespace AnalyticsService.Repository
                                               {
                                                   AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
                                                   PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                                  AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  AdvertisementId = ObfuscationClass.EncodeId(analytics.AdvertisementId.GetValueOrDefault(), _appSettings.Prime).ToString(),
                                                   InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
@@ -264,7 +264,7 @@ namespace AnalyticsService.Repository
                                               {
                                                   AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
                                                   PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                                  AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  AdvertisementId = ObfuscationClass.EncodeId(analytics.AdvertisementId.GetValueOrDefault(), _appSettings.Prime).ToString(),
                                                   InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
@@ -285,7 +285,7 @@ namespace AnalyticsService.Repository
                                               {
                                                   AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
                                                   PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                                  AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  AdvertisementId = ObfuscationClass.EncodeId(analytics.AdvertisementId.GetValueOrDefault(), _appSettings.Prime).ToString(),
                                                   InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
@@ -302,7 +302,7 @@ namespace AnalyticsService.Repository
                                               {
                                                   AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId, _appSettings.Prime).ToString(),
                                                   PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                                  AdvertismentId = ObfuscationClass.EncodeId(analytics.AdvertismentId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                  AdvertisementId = ObfuscationClass.EncodeId(analytics.AdvertisementId.GetValueOrDefault(), _appSettings.Prime).ToString(),
                                                   InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault(), _appSettings.Prime).ToString(),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,

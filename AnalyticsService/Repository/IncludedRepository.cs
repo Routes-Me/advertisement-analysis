@@ -33,7 +33,7 @@ namespace AnalyticsService.Repository
             List<AdvertisementsModel> lstAdvertisements = new List<AdvertisementsModel>();
             foreach (var item in analyticsModelList)
             {
-                var client = new RestClient(_appSettings.Host + _dependencies.AdvertisementsUrl + item.AdvertismentId);
+                var client = new RestClient(_appSettings.Host + _dependencies.AdvertisementsUrl + item.AdvertisementId);
                 var request = new RestRequest(Method.GET);
                 IRestResponse response = client.Execute(request);
                 if (response.StatusCode == HttpStatusCode.OK)
