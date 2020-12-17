@@ -17,5 +17,6 @@ namespace AnalyticsService.Abstraction
         void InsertAnalyticsFromLinks();
 
         dynamic GetAnalyticsData(string analyticsId, string start_at, string end_at, string include, Pagination pageInfo);
+        dynamic GetDeviceRunningTime(string deviceId, string startDate, string endDate);
     }
 }

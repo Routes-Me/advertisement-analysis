@@ -154,20 +154,43 @@ namespace AnalyticsService.Repository
                     Playbacks playbacks = new Playbacks();
                     playbacks.DeviceId = deviceId;
                     playbacks.AdvertisementId = advertisementId;
-                    playbacks.Date = DateTime.Now;
+                    playbacks.Date = playback.Date;
                     playbacks.Count = playback.Count;
                     playbacks.MediaType = playback.MediaType;
                     playbacks.Length = playback.Length;
                     _context.Playbacks.Add(playbacks);
                     _context.SaveChanges();
                 }
-
+                InsertDeviceRunningTime(model);
 
                 return ReturnResponse.SuccessResponse(CommonMessage.AnalyticsInsert, true);
             }
             catch (Exception ex)
             {
                 return ReturnResponse.ExceptionResponse(ex);
+            }
+        }
+
+        public void InsertDeviceRunningTime(List<PlaybacksModel> model)
+        {
+            float duration = 0;
+            foreach (var group in model.GroupBy(x => x.DeviceId))
+            {
+                foreach (var item in group)
+                {
+                    if (item.MediaType == "video")
+                    {
+                        duration = duration + (item.Length * item.Count);
+                    }
+                }
+                DeviceRunningTimes deviceRunningTimes = new DeviceRunningTimes();
+                deviceRunningTimes.DeviceId = int.Parse(group.FirstOrDefault().DeviceId);
+                deviceRunningTimes.Duration = duration;
+                deviceRunningTimes.Date = group.LastOrDefault().Date;
+                _context.DeviceRunningTimes.Add(deviceRunningTimes);
+                _context.SaveChanges();
+
+                duration = 0;
             }
         }
 
@@ -346,6 +369,54 @@ namespace AnalyticsService.Repository
                 response.pagination = page;
                 response.data = analyticsModelList;
                 response.included = includeData;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return ReturnResponse.ExceptionResponse(ex);
+            }
+        }
+
+        public dynamic GetDeviceRunningTime(string deviceId, string startDate, string endDate)
+        {
+             try
+            {
+                GetDeviceRunningTimeResponse response = new GetDeviceRunningTimeResponse();
+                int deviceIdDecrypt = ObfuscationClass.DecodeId(Convert.ToInt32(deviceId), _appSettings.PrimeInverse);
+                List<DeviceRunningTimesModel> DeviceRunningTimesModelList = new List<DeviceRunningTimesModel>();
+                DateTime? startAt = null;
+                DateTime? endAt = null;
+
+                if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
+                {
+                    startAt = UnixTimeStampToDateTime(startDate);
+                    endAt = UnixTimeStampToDateTime(endDate);
+                }
+
+                if (startDate == null)
+                {
+                    startAt = DateTime.Now;
+                }
+
+                if (endDate == null)
+                {
+                    endAt = DateTime.Now;
+                }
+
+                DeviceRunningTimesModelList = (from analytics in _context.DeviceRunningTimes
+                                                // where analytics.DeviceId == deviceIdDecrypt && analytics.Date >= startAt && analytics.Date <= endAt
+                                                select new DeviceRunningTimesModel()
+                                                {
+                                                    DeviceRunningTimeId = ObfuscationClass.EncodeId(analytics.DeviceRunningTimeId, _appSettings.Prime).ToString(),
+                                                    DeviceId = ObfuscationClass.EncodeId(analytics.DeviceId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                    Duration = analytics.Duration,
+                                                    Date = analytics.Date
+                                                }).AsEnumerable().OrderBy(a => a.DeviceId).ToList();
+
+                response.status = true;
+                response.statusCode = StatusCodes.Status200OK;
+                response.message = CommonMessage.AnalyticsRetrived;
+                response.deviceRunningTimesModelList = DeviceRunningTimesModelList;
                 return response;
             }
             catch (Exception ex)

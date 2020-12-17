@@ -18,6 +18,7 @@ namespace AnalyticsService.Models.DBModels
         public virtual DbSet<LinkLogs> LinkLogs { get; set; }
         public virtual DbSet<PromotionAnalytics> PromotionAnalytics { get; set; }
         public virtual DbSet<Playbacks> Playbacks { get; set; }
+        public virtual DbSet<DeviceRunningTimes> DeviceRunningTimes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -78,6 +79,23 @@ namespace AnalyticsService.Models.DBModels
                     .HasCollation("utf8mb4_0900_ai_ci");
 
                 entity.Property(e => e.Length).HasColumnName("length");
+            });
+
+            modelBuilder.Entity<DeviceRunningTimes>(entity =>
+            {
+                entity.HasKey(e => e.DeviceRunningTimeId).HasName("PRIMARY");
+
+                entity.ToTable("device_running_times");
+
+                entity.Property(e => e.DeviceRunningTimeId).HasColumnName("device_running_time_id");
+
+                entity.Property(e => e.DeviceId).HasColumnName("device_id");
+
+                entity.Property(e => e.Duration).HasColumnName("duration");
+
+                entity.Property(e => e.Date)
+                    .HasColumnName("date")
+                    .HasColumnType("timestamp");
             });
 
             modelBuilder.Entity<PromotionAnalytics>(entity =>
