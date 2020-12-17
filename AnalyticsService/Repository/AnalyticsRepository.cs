@@ -377,46 +377,64 @@ namespace AnalyticsService.Repository
             }
         }
 
-        public dynamic GetDeviceRunningTime(string deviceId, string startDate, string endDate)
+        public dynamic GetDeviceRunningTime(string deviceId, string start_at, string end_at)
         {
              try
             {
                 GetDeviceRunningTimeResponse response = new GetDeviceRunningTimeResponse();
                 int deviceIdDecrypt = ObfuscationClass.DecodeId(Convert.ToInt32(deviceId), _appSettings.PrimeInverse);
+
                 List<DeviceRunningTimesModel> DeviceRunningTimesModelList = new List<DeviceRunningTimesModel>();
                 DateTime? startAt = null;
                 DateTime? endAt = null;
 
-                if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
+                if (!string.IsNullOrEmpty(start_at) && !string.IsNullOrEmpty(end_at))
                 {
-                    startAt = UnixTimeStampToDateTime(startDate);
-                    endAt = UnixTimeStampToDateTime(endDate);
+                    startAt = UnixTimeStampToDateTime(start_at);
+                    endAt = UnixTimeStampToDateTime(end_at);
                 }
 
-                if (startDate == null)
+                if (start_at == null)
                 {
-                    startAt = DateTime.Now;
+                    startAt = _context.DeviceRunningTimes.AsEnumerable().OrderBy(a => a.Date).FirstOrDefault().Date;
                 }
 
-                if (endDate == null)
+                if (end_at == null)
                 {
                     endAt = DateTime.Now;
                 }
 
-                DeviceRunningTimesModelList = (from analytics in _context.DeviceRunningTimes
-                                                // where analytics.DeviceId == deviceIdDecrypt && analytics.Date >= startAt && analytics.Date <= endAt
-                                                select new DeviceRunningTimesModel()
-                                                {
-                                                    DeviceRunningTimeId = ObfuscationClass.EncodeId(analytics.DeviceRunningTimeId, _appSettings.Prime).ToString(),
-                                                    DeviceId = ObfuscationClass.EncodeId(analytics.DeviceId.GetValueOrDefault(), _appSettings.Prime).ToString(),
-                                                    Duration = analytics.Duration,
-                                                    Date = analytics.Date
-                                                }).AsEnumerable().OrderBy(a => a.DeviceId).ToList();
+                if (deviceIdDecrypt != 0)
+                {
+                    float totalTimes = _context.DeviceRunningTimes.Where(a => a.DeviceId == deviceIdDecrypt).AsEnumerable().Select(a => a.Duration).Sum();
+
+                    DeviceRunningTimesModelList.Add((from analytics in _context.DeviceRunningTimes
+                                                    where analytics.DeviceId == deviceIdDecrypt && analytics.Date >= startAt && analytics.Date <= endAt
+                                                    select new DeviceRunningTimesModel()
+                                                    {
+                                                        DeviceRunningTimeId = ObfuscationClass.EncodeId(analytics.DeviceRunningTimeId, _appSettings.Prime).ToString(),
+                                                        DeviceId = ObfuscationClass.EncodeId(analytics.DeviceId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                        Duration = totalTimes,
+                                                        Date = analytics.Date
+                                                    }).First());
+                }
+                else
+                {
+                    DeviceRunningTimesModelList = (from analytics in _context.DeviceRunningTimes
+                                                    where analytics.Date >= startAt && analytics.Date <= endAt
+                                                    select new DeviceRunningTimesModel()
+                                                    {
+                                                        DeviceRunningTimeId = ObfuscationClass.EncodeId(analytics.DeviceRunningTimeId, _appSettings.Prime).ToString(),
+                                                        DeviceId = ObfuscationClass.EncodeId(analytics.DeviceId.GetValueOrDefault(), _appSettings.Prime).ToString(),
+                                                        Duration = analytics.Duration,
+                                                        Date = analytics.Date
+                                                    }).AsEnumerable().OrderBy(a => a.DeviceId).ToList();
+                }
 
                 response.status = true;
                 response.statusCode = StatusCodes.Status200OK;
                 response.message = CommonMessage.AnalyticsRetrived;
-                response.deviceRunningTimesModelList = DeviceRunningTimesModelList;
+                response.data = DeviceRunningTimesModelList;
                 return response;
             }
             catch (Exception ex)

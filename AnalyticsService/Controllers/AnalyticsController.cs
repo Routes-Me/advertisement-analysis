@@ -63,10 +63,10 @@ namespace AnalyticsService.Controllers
         }
 
         [HttpGet]
-        [Route("analytics/deviceRunningTimes/{id=0}")]
-        public IActionResult GetDeviceRunningTime(string deviceId, string startDate, string endDate)
+        [Route("analytics/devices/{deviceId=0}")]
+        public IActionResult GetDeviceRunningTime(string deviceId, string start_at, string end_at)
         {
-            dynamic response = _analyticsRepository.GetDeviceRunningTime(deviceId, startDate, endDate);
+            dynamic response = _analyticsRepository.GetDeviceRunningTime(deviceId, start_at, end_at);
             return StatusCode((int)response.statusCode, response);
         }
     }

@@ -64,7 +64,7 @@ namespace AnalyticsService.Models
     }
     public class GetDeviceRunningTimeResponse : Response
     {
-        public List<DeviceRunningTimesModel> deviceRunningTimesModelList { get; set; }
+        public List<DeviceRunningTimesModel> data { get; set; }
     }
     public class AdvertisementData
     {
