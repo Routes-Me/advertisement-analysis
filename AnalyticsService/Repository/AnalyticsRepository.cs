@@ -139,14 +139,14 @@ namespace AnalyticsService.Repository
             }
         }
 
-        public dynamic InsertPlaybacks(List<PlaybacksModel> model)
+        public dynamic InsertPlaybacks(List<PlaybacksModel> playbacksList)
         {
             try
             {
-                if (model == null)
-                    return ReturnResponse.ErrorResponse(CommonMessage.EmptyModel, StatusCodes.Status400BadRequest);
+                if (!playbacksList.Any())
+                    return ReturnResponse.ErrorResponse(CommonMessage.EmptyModel, StatusCodes.Status422UnprocessableEntity);
 
-                foreach (var playback in model)
+                foreach (var playback in playbacksList)
                 {
                     int deviceId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.DeviceId), _appSettings.PrimeInverse);
                     int advertisementId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.AdvertisementId), _appSettings.PrimeInverse);
@@ -154,14 +154,14 @@ namespace AnalyticsService.Repository
                     Playbacks playbacks = new Playbacks();
                     playbacks.DeviceId = deviceId;
                     playbacks.AdvertisementId = advertisementId;
-                    playbacks.Date = playback.Date;
+                    playbacks.Date = UnixTimeStampToDateTime(playback.Date.ToString());
                     playbacks.Count = playback.Count;
                     playbacks.MediaType = playback.MediaType;
                     playbacks.Length = playback.Length;
                     _context.Playbacks.Add(playbacks);
                     _context.SaveChanges();
                 }
-                InsertDeviceRunningTime(model);
+                InsertDeviceRunningTime(playbacksList);
 
                 return ReturnResponse.SuccessResponse(CommonMessage.AnalyticsInsert, true);
             }
@@ -174,19 +174,19 @@ namespace AnalyticsService.Repository
         public void InsertDeviceRunningTime(List<PlaybacksModel> model)
         {
             float duration = 0;
-            foreach (var group in model.GroupBy(x => x.DeviceId))
+            foreach (var groupedPlaybacks in model.GroupBy(x => x.Date))
             {
-                foreach (var item in group)
+                foreach (var playback in groupedPlaybacks)
                 {
-                    if (item.MediaType == "video")
+                    if (playback.MediaType == "video")
                     {
-                        duration = duration + (item.Length * item.Count);
+                        duration = duration + (playback.Length * playback.Count);
                     }
                 }
                 DeviceRunningTimes deviceRunningTimes = new DeviceRunningTimes();
-                deviceRunningTimes.DeviceId = int.Parse(group.FirstOrDefault().DeviceId);
+                deviceRunningTimes.DeviceId = ObfuscationClass.DecodeId(Convert.ToInt32(groupedPlaybacks.FirstOrDefault().DeviceId), _appSettings.PrimeInverse);
                 deviceRunningTimes.Duration = duration;
-                deviceRunningTimes.Date = group.LastOrDefault().Date;
+                deviceRunningTimes.Date = UnixTimeStampToDateTime(groupedPlaybacks.FirstOrDefault().Date.ToString());
                 _context.DeviceRunningTimes.Add(deviceRunningTimes);
                 _context.SaveChanges();
 
