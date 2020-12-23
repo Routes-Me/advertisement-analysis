@@ -143,8 +143,8 @@ namespace AnalyticsService.Repository
         {
             try
             {
-                if (playbacksList == null)
-                    return ReturnResponse.ErrorResponse(CommonMessage.EmptyModel, StatusCodes.Status400BadRequest);
+                if (!playbacksList.Any())
+                    return ReturnResponse.ErrorResponse(CommonMessage.EmptyModel, StatusCodes.Status422UnprocessableEntity);
 
                 foreach (var playback in playbacksList)
                 {
