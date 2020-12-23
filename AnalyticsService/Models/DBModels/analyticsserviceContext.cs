@@ -68,7 +68,7 @@ namespace AnalyticsService.Models.DBModels
 
                 entity.Property(e => e.Date)
                     .HasColumnName("date")
-                    .HasColumnType("timestamp");
+                    .HasColumnType("datetime");
 
                 entity.Property(e => e.Count).HasColumnName("count");
 

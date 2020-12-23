@@ -154,7 +154,7 @@ namespace AnalyticsService.Repository
                     Playbacks playbacks = new Playbacks();
                     playbacks.DeviceId = deviceId;
                     playbacks.AdvertisementId = advertisementId;
-                    playbacks.Date = playback.Date;
+                    playbacks.Date = UnixTimeStampToDateTime(playback.Date.ToString());
                     playbacks.Count = playback.Count;
                     playbacks.MediaType = playback.MediaType;
                     playbacks.Length = playback.Length;
@@ -184,9 +184,9 @@ namespace AnalyticsService.Repository
                     }
                 }
                 DeviceRunningTimes deviceRunningTimes = new DeviceRunningTimes();
-                deviceRunningTimes.DeviceId = int.Parse(group.FirstOrDefault().DeviceId);
+                deviceRunningTimes.DeviceId = ObfuscationClass.DecodeId(Convert.ToInt32(group.FirstOrDefault().DeviceId), _appSettings.PrimeInverse);
                 deviceRunningTimes.Duration = duration;
-                deviceRunningTimes.Date = group.LastOrDefault().Date;
+                deviceRunningTimes.Date = UnixTimeStampToDateTime(group.LastOrDefault().Date.ToString());
                 _context.DeviceRunningTimes.Add(deviceRunningTimes);
                 _context.SaveChanges();
 
