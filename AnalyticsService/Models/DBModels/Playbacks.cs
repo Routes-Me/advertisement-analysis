@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace AnalyticsService.Models.DBModels
 {
@@ -8,9 +9,7 @@ namespace AnalyticsService.Models.DBModels
         public int? DeviceId { get; set; }
         public int? AdvertisementId { get; set; }
         public DateTime Date { get; set; }
-        public int Count { get; set; }
         public string MediaType { get; set; }
-        public float Length { get; set; }
+        public virtual ICollection<PlaybacksSlots> PlaybacksSlot { get; set; }
     }
 }
-

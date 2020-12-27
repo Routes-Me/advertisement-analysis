@@ -39,10 +39,10 @@ namespace AnalyticsService.Controllers
         }
 
         [HttpPost]
-        [Route("analytics/playbacks")]
-        public IActionResult PostPlaybacks(List<PlaybacksModel> model)
+        [Route("analytics/devices/{deviceId=0}/playbacks")]
+        public IActionResult PostPlaybacks(string deviceId, List<PlaybacksModel> playbacksList)
         {
-            dynamic response = _analyticsRepository.InsertPlaybacks(model);
+            dynamic response = _analyticsRepository.InsertPlaybacks(deviceId, playbacksList);
             return StatusCode((int)response.statusCode, response);
         }
 

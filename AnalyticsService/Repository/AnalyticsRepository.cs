@@ -139,29 +139,28 @@ namespace AnalyticsService.Repository
             }
         }
 
-        public dynamic InsertPlaybacks(List<PlaybacksModel> playbacksList)
+        public dynamic InsertPlaybacks(string deviceId, List<PlaybacksModel> PlaybacksModelList)
         {
             try
             {
-                if (!playbacksList.Any())
+                if (!PlaybacksModelList.Any())
                     return ReturnResponse.ErrorResponse(CommonMessage.EmptyModel, StatusCodes.Status422UnprocessableEntity);
 
-                foreach (var playback in playbacksList)
+                List<Playbacks> playbacksList = new List<Playbacks>();
+                int deviceIdDecrypt = ObfuscationClass.DecodeId(Convert.ToInt32(deviceId), _appSettings.PrimeInverse);
+                foreach (var playback in PlaybacksModelList)
                 {
-                    int deviceId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.DeviceId), _appSettings.PrimeInverse);
-                    int advertisementId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.AdvertisementId), _appSettings.PrimeInverse);
-
                     Playbacks playbacks = new Playbacks();
-                    playbacks.DeviceId = deviceId;
-                    playbacks.AdvertisementId = advertisementId;
+                    playbacks.DeviceId = deviceIdDecrypt;
+                    playbacks.AdvertisementId = ObfuscationClass.DecodeId(Convert.ToInt32(playback.AdvertisementId), _appSettings.PrimeInverse);
                     playbacks.Date = UnixTimeStampToDateTime(playback.Date.ToString());
-                    playbacks.Count = playback.Count;
                     playbacks.MediaType = playback.MediaType;
-                    playbacks.Length = playback.Length;
-                    _context.Playbacks.Add(playbacks);
-                    _context.SaveChanges();
+                    InsertPlaybackSlots(playback);
+                    playbacksList.Add(playbacks);
                 }
-                InsertDeviceRunningTime(playbacksList);
+                _context.Playbacks.AddRange(playbacksList);
+                _context.SaveChanges();
+                // InsertDeviceRunningTime(playbacksList);
 
                 return ReturnResponse.SuccessResponse(CommonMessage.AnalyticsInsert, true);
             }
@@ -171,7 +170,25 @@ namespace AnalyticsService.Repository
             }
         }
 
-        public void InsertDeviceRunningTime(List<PlaybacksModel> model)
+        private void InsertPlaybackSlots(PlaybacksModel playback)
+        {
+            if (!playback.slots.Any())
+                throw new Exception(CommonMessage.EmptyPlaybackSlots);
+
+            List<PlaybacksSlots> playbacksSlots = new List<PlaybacksSlots>();
+            foreach (var slot in playback.slots)
+            {
+                PlaybacksSlots playbacksSlot = new PlaybacksSlots();
+                playbacksSlot.PlaybackId = ObfuscationClass.DecodeId(Convert.ToInt32(slot.PlaybackId), _appSettings.PrimeInverse);
+                playbacksSlot.Slot = slot.Slot;
+                playbacksSlot.Value = slot.Value;
+                playbacksSlots.Add(playbacksSlot);
+            }
+            _context.PlaybacksSlots.AddRange(playbacksSlots);
+            _context.SaveChanges();
+        }
+
+        /* public void InsertDeviceRunningTime(List<PlaybacksModel> model)
         {
             float duration = 0;
             foreach (var groupedPlaybacks in model.GroupBy(x => x.Date))
@@ -192,7 +209,7 @@ namespace AnalyticsService.Repository
 
                 duration = 0;
             }
-        }
+        }*/
 
         public void InsertAnalyticsFromLinks()
         {

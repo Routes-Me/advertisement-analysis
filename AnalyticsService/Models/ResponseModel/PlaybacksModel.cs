@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 
 namespace AnalyticsService.Models.DBModels
 {
@@ -8,8 +8,7 @@ namespace AnalyticsService.Models.DBModels
         public string DeviceId { get; set; }
         public string AdvertisementId { get; set; }
         public long Date { get; set; }
-        public int Count { get; set; }
         public string MediaType { get; set; }
-        public float Length { get; set; }
+        public List<PlaybacksSlots> slots {get; set; }
     }
 }
