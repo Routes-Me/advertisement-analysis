@@ -16,9 +16,11 @@ namespace AnalyticsService.Controllers
     public class AnalyticsController : ControllerBase
     {
         private readonly IAnalyticsRepository _analyticsRepository;
-        public AnalyticsController(IAnalyticsRepository analyticsRepository)
+        private readonly analyticsserviceContext _context;
+        public AnalyticsController(IAnalyticsRepository analyticsRepository, analyticsserviceContext context)
         {
             _analyticsRepository = analyticsRepository;
+            _context = context;
         }
 
         [HttpPost]
@@ -39,10 +41,25 @@ namespace AnalyticsService.Controllers
         }
 
         [HttpPost]
-        [Route("analytics/devices/{deviceId=0}/playbacks")]
-        public IActionResult PostPlaybacks(string deviceId, List<PlaybacksModel> playbacksList)
+        [Route("analytics/devices/{deviceId}/playbacks")]
+        public async Task<IActionResult> PostPlaybacks(string deviceId, List<PlaybackDto> playbackDtoList)
         {
-            dynamic response = _analyticsRepository.InsertPlaybacks(deviceId, playbacksList);
+            try
+            {
+                List<Playback> playbacksList = _analyticsRepository.InsertPlaybacks(deviceId, playbackDtoList);
+                _context.Playbacks.AddRange(playbacksList);
+                await _context.SaveChangesAsync();
+            }
+            catch (ArgumentNullException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                dynamic errorResponse = ReturnResponse.ExceptionResponse(ex);
+                return StatusCode((int)errorResponse.statusCode, errorResponse);
+            }
+            dynamic response = ReturnResponse.SuccessResponse(CommonMessage.AnalyticsInsert, true);
             return StatusCode((int)response.statusCode, response);
         }
 
@@ -55,18 +72,10 @@ namespace AnalyticsService.Controllers
         }
 
         [HttpGet]
-        [Route("analytics/promotions/{id=0}")]
+        [Route("analytics/promotions/{id?}")]
         public IActionResult GetAnalyticsData(string id, string start_at, string end_at, string include,[FromQuery] Pagination pageInfo)
         {
             dynamic response = _analyticsRepository.GetAnalyticsData(id, start_at, end_at, include, pageInfo);
-            return StatusCode((int)response.statusCode, response);
-        }
-
-        [HttpGet]
-        [Route("analytics/devices/{deviceId=0}")]
-        public IActionResult GetDeviceRunningTime(string deviceId, string start_at, string end_at)
-        {
-            dynamic response = _analyticsRepository.GetDeviceRunningTime(deviceId, start_at, end_at);
             return StatusCode((int)response.statusCode, response);
         }
     }

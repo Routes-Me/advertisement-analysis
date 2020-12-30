@@ -17,9 +17,8 @@ namespace AnalyticsService.Models.DBModels
 
         public virtual DbSet<LinkLogs> LinkLogs { get; set; }
         public virtual DbSet<PromotionAnalytics> PromotionAnalytics { get; set; }
-        public virtual DbSet<Playbacks> Playbacks { get; set; }
-        public virtual DbSet<PlaybacksSlots> PlaybacksSlots { get; set; }
-        public virtual DbSet<DeviceRunningTimes> DeviceRunningTimes { get; set; }
+        public virtual DbSet<Playback> Playbacks { get; set; }
+        public virtual DbSet<PlaybackSlots> PlaybackSlots { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -55,7 +54,7 @@ namespace AnalyticsService.Models.DBModels
                 entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
             });
 
-            modelBuilder.Entity<Playbacks>(entity =>
+            modelBuilder.Entity<Playback>(entity =>
             {
                 entity.HasKey(e => e.PlaybackId).HasName("PRIMARY");
 
@@ -78,13 +77,13 @@ namespace AnalyticsService.Models.DBModels
                     .HasCollation("utf8mb4_0900_ai_ci");
             });
 
-            modelBuilder.Entity<PlaybacksSlots>(entity =>
+            modelBuilder.Entity<PlaybackSlots>(entity =>
             {
                 entity.HasKey(e => e.PlaybackSlotId).HasName("PRIMARY");
 
-                entity.ToTable("playbackslots");
+                entity.ToTable("playback_slots");
 
-                entity.Property(e => e.PlaybackSlotId).HasColumnName("playbackslot_id");
+                entity.Property(e => e.PlaybackSlotId).HasColumnName("playback_slot_id");
 
                 entity.Property(e => e.PlaybackId).HasColumnName("playback_id");
 
@@ -92,26 +91,14 @@ namespace AnalyticsService.Models.DBModels
 
                 entity.Property(e => e.Slot)
                     .HasColumnName("slot")
-                    .HasColumnType("enum('mo', 'no', 'ev', 'ni')")
+                    .HasColumnType("enum('morning', 'noon', 'evening', 'night')")
                     .HasCharSet("utf8mb4")
                     .HasCollation("utf8mb4_0900_ai_ci");
-            });
 
-            modelBuilder.Entity<DeviceRunningTimes>(entity =>
-            {
-                entity.HasKey(e => e.DeviceRunningTimeId).HasName("PRIMARY");
-
-                entity.ToTable("device_running_times");
-
-                entity.Property(e => e.DeviceRunningTimeId).HasColumnName("device_running_time_id");
-
-                entity.Property(e => e.DeviceId).HasColumnName("device_id");
-
-                entity.Property(e => e.Duration).HasColumnName("duration");
-
-                entity.Property(e => e.Date)
-                    .HasColumnName("date")
-                    .HasColumnType("timestamp");
+                entity.HasOne(d => d.Playbacks)
+                    .WithMany(p => p.Slots)
+                    .HasForeignKey(d => d.PlaybackId)
+                    .HasConstraintName("playback_slots_ibfk_1");
             });
 
             modelBuilder.Entity<PromotionAnalytics>(entity =>
