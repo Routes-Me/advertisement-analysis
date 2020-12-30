@@ -62,10 +62,6 @@ namespace AnalyticsService.Models
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public JObject included { get; set; }
     }
-    public class GetDeviceRunningTimeResponse : Response
-    {
-        public List<DeviceRunningTimesModel> data { get; set; }
-    }
     public class AdvertisementData
     {
         public Pagination pagination { get; set; }

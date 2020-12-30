@@ -12,11 +12,10 @@ namespace AnalyticsService.Abstraction
     {
         dynamic InsertAnalytics(AnalyticsModel model);
         public dynamic InsertLinksLog(LinkLogsModel model);
-        public dynamic InsertPlaybacks(List<PlaybacksModel> model);
+        public dynamic InsertPlaybacks(string deviceId, List<PlaybackDto> playbackDtoList);
         dynamic GetAnalytics(string include, string type, Pagination pageInfo);
         void InsertAnalyticsFromLinks();
 
         dynamic GetAnalyticsData(string analyticsId, string start_at, string end_at, string include, Pagination pageInfo);
-        dynamic GetDeviceRunningTime(string deviceId, string start_at, string end_at);
     }
 }
