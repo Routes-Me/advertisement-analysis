@@ -155,7 +155,7 @@ namespace AnalyticsService.Repository
                 playback.MediaType = playbackDto.MediaType;
                 playback.Slots = new List<PlaybackSlots>();
                 var slots = playbackDto.Slots.Select(slot =>
-                     new PlaybackSlots{
+                    new PlaybackSlots{
                         Value = slot.Value,
                         Slot = PeriodEnumHandler.GetPeriod(slot.Period)
                     }

@@ -57,7 +57,7 @@ namespace AnalyticsService.Controllers
             catch (Exception ex)
             {
                 dynamic errorResponse = ReturnResponse.ExceptionResponse(ex);
-                return StatusCode((int)errorResponse.statusCode, errorResponse);
+                return StatusCode(StatusCodes.Status400BadRequest, errorResponse.message);
             }
             dynamic response = ReturnResponse.SuccessResponse(CommonMessage.AnalyticsInsert, true);
             return StatusCode((int)response.statusCode, response);
