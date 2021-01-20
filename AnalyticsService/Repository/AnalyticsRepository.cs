@@ -60,9 +60,9 @@ namespace AnalyticsService.Repository
 
                 foreach (var item in model.analytics)
                 {
-                    int promotionId = ObfuscationClass.DecodeId(item.PromotionId.ToString());
-                    int advertisementId = ObfuscationClass.DecodeId(item.AdvertisementId.ToString());
-                    int institutionId = ObfuscationClass.DecodeId(item.InstitutionId.ToString());
+                    int promotionId = ObfuscationClass.Decode(item.PromotionId.ToString());
+                    int advertisementId = ObfuscationClass.Decode(item.AdvertisementId.ToString());
+                    int institutionId = ObfuscationClass.Decode(item.InstitutionId.ToString());
 
                     if (Convert.ToDateTime(item.CreatedAt).Date == DateTime.Now.Date)
                     {
@@ -116,9 +116,9 @@ namespace AnalyticsService.Repository
                 if (model == null)
                     return ReturnResponse.ErrorResponse(CommonMessage.EmptyModel, StatusCodes.Status400BadRequest);
 
-                int promotionId = ObfuscationClass.DecodeId(model.PromotionId);
-                int advertisementId = ObfuscationClass.DecodeId(model.AdvertisementId);
-                int institutionId = ObfuscationClass.DecodeId(model.InstitutionId);
+                int promotionId = ObfuscationClass.Decode(model.PromotionId);
+                int advertisementId = ObfuscationClass.Decode(model.AdvertisementId);
+                int institutionId = ObfuscationClass.Decode(model.InstitutionId);
 
                 LinkLogs linkLogs = new LinkLogs();
                 linkLogs.PromotionId = promotionId;
@@ -145,12 +145,12 @@ namespace AnalyticsService.Repository
                 throw new ArgumentNullException(CommonMessage.EmptyPlaybacks);
 
             List<Playback> playbacksList = new List<Playback>();
-            int deviceIdDecrypt = ObfuscationClass.DecodeId(deviceId);
+            int deviceIdDecrypt = ObfuscationClass.Decode(deviceId);
             foreach (var playbackDto in playbackDtoList)
             {
                 Playback playback = new Playback();
                 playback.DeviceId = deviceIdDecrypt;
-                playback.AdvertisementId = ObfuscationClass.DecodeId(playbackDto.AdvertisementId);
+                playback.AdvertisementId = ObfuscationClass.Decode(playbackDto.AdvertisementId);
                 playback.Date = UnixTimeStampToDateTime(playbackDto.Date.ToString());
                 playback.MediaType = playbackDto.MediaType;
                 playback.Slots = new List<PlaybackSlots>();
@@ -242,10 +242,10 @@ namespace AnalyticsService.Repository
                         analyticsModelList = (from analytics in _context.PromotionAnalytics
                                               select new PromotionAnalyticsModel()
                                               {
-                                                  AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId),
-                                                  PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault()),
-                                                  AdvertisementId = ObfuscationClass.EncodeId(analytics.AdvertisementId.GetValueOrDefault()),
-                                                  InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault()),
+                                                  AnalyticId = ObfuscationClass.Encode(analytics.AnalyticId),
+                                                  PromotionId = ObfuscationClass.Encode(analytics.PromotionId.GetValueOrDefault()),
+                                                  AdvertisementId = ObfuscationClass.Encode(analytics.AdvertisementId.GetValueOrDefault()),
+                                                  InstitutionId = ObfuscationClass.Encode(analytics.InstitutionId.GetValueOrDefault()),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
                                                   Type = analytics.Type
@@ -259,10 +259,10 @@ namespace AnalyticsService.Repository
                                               where analytics.CreatedAt >= startAt && analytics.CreatedAt <= endAt
                                               select new PromotionAnalyticsModel()
                                               {
-                                                  AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId),
-                                                  PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault()),
-                                                  AdvertisementId = ObfuscationClass.EncodeId(analytics.AdvertisementId.GetValueOrDefault()),
-                                                  InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault()),
+                                                  AnalyticId = ObfuscationClass.Encode(analytics.AnalyticId),
+                                                  PromotionId = ObfuscationClass.Encode(analytics.PromotionId.GetValueOrDefault()),
+                                                  AdvertisementId = ObfuscationClass.Encode(analytics.AdvertisementId.GetValueOrDefault()),
+                                                  InstitutionId = ObfuscationClass.Encode(analytics.InstitutionId.GetValueOrDefault()),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
                                                   Type = analytics.Type
@@ -273,17 +273,17 @@ namespace AnalyticsService.Repository
                 }
                 else
                 {
-                    int analyticsIdDecrypt = ObfuscationClass.DecodeId(analyticsId);
+                    int analyticsIdDecrypt = ObfuscationClass.Decode(analyticsId);
                     if (start_at == null && end_at == null)
                     {
                         analyticsModelList = (from analytics in _context.PromotionAnalytics
                                               where analytics.AnalyticId == analyticsIdDecrypt
                                               select new PromotionAnalyticsModel()
                                               {
-                                                  AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId),
-                                                  PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault()),
-                                                  AdvertisementId = ObfuscationClass.EncodeId(analytics.AdvertisementId.GetValueOrDefault()),
-                                                  InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault()),
+                                                  AnalyticId = ObfuscationClass.Encode(analytics.AnalyticId),
+                                                  PromotionId = ObfuscationClass.Encode(analytics.PromotionId.GetValueOrDefault()),
+                                                  AdvertisementId = ObfuscationClass.Encode(analytics.AdvertisementId.GetValueOrDefault()),
+                                                  InstitutionId = ObfuscationClass.Encode(analytics.InstitutionId.GetValueOrDefault()),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
                                                   Type = analytics.Type
@@ -297,10 +297,10 @@ namespace AnalyticsService.Repository
                                               where analytics.AnalyticId == analyticsIdDecrypt && analytics.CreatedAt >= startAt && analytics.CreatedAt <= endAt
                                               select new PromotionAnalyticsModel()
                                               {
-                                                  AnalyticId = ObfuscationClass.EncodeId(analytics.AnalyticId),
-                                                  PromotionId = ObfuscationClass.EncodeId(analytics.PromotionId.GetValueOrDefault()),
-                                                  AdvertisementId = ObfuscationClass.EncodeId(analytics.AdvertisementId.GetValueOrDefault()),
-                                                  InstitutionId = ObfuscationClass.EncodeId(analytics.InstitutionId.GetValueOrDefault()),
+                                                  AnalyticId = ObfuscationClass.Encode(analytics.AnalyticId),
+                                                  PromotionId = ObfuscationClass.Encode(analytics.PromotionId.GetValueOrDefault()),
+                                                  AdvertisementId = ObfuscationClass.Encode(analytics.AdvertisementId.GetValueOrDefault()),
+                                                  InstitutionId = ObfuscationClass.Encode(analytics.InstitutionId.GetValueOrDefault()),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
                                                   Type = analytics.Type
