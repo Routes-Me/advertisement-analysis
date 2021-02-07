@@ -19,6 +19,7 @@ namespace AnalyticsService.Models.DBModels
         public virtual DbSet<PromotionAnalytics> PromotionAnalytics { get; set; }
         public virtual DbSet<Playback> Playbacks { get; set; }
         public virtual DbSet<PlaybackSlots> PlaybackSlots { get; set; }
+        public virtual DbSet<DeviceRunningTimes> DeviceRunningTimes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,6 +53,23 @@ namespace AnalyticsService.Models.DBModels
                 entity.Property(e => e.InstitutionId).HasColumnName("institution_id");
 
                 entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
+            });
+
+             modelBuilder.Entity<DeviceRunningTimes>(entity =>
+            {
+                entity.HasKey(e => e.DeviceRunningTimeId).HasName("PRIMARY");
+
+                entity.ToTable("device_running_times");
+
+                entity.Property(e => e.DeviceRunningTimeId).HasColumnName("device_running_time_id");
+
+                entity.Property(e => e.DeviceId).HasColumnName("device_id");
+
+                entity.Property(e => e.Duration).HasColumnName("duration");
+
+                entity.Property(e => e.Date)
+                    .HasColumnName("date")
+                    .HasColumnType("datetime");
             });
 
             modelBuilder.Entity<Playback>(entity =>

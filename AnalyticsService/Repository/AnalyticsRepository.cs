@@ -169,6 +169,19 @@ namespace AnalyticsService.Repository
             return playbacksList;
         }
 
+        public dynamic InsertDeviceRunningTime(DeviceRunningTimesDto deviceRunningTimesDto)
+        {
+            if (string.IsNullOrEmpty(deviceRunningTimesDto.DeviceId) || deviceRunningTimesDto == null)
+                throw new ArgumentNullException(CommonMessage.EmptyModel);
+
+            DeviceRunningTimes deviceRunningTime = new DeviceRunningTimes();
+            deviceRunningTime.DeviceId = ObfuscationClass.DecodeId(Convert.ToInt32(deviceRunningTimesDto.DeviceId), _appSettings.PrimeInverse);
+            deviceRunningTime.Duration = deviceRunningTimesDto.Duration;
+            deviceRunningTime.Date = DateTime.Now;
+
+            return deviceRunningTime;
+        }
+
         public void InsertAnalyticsFromLinks()
         {
             string advertisementId = string.Empty;

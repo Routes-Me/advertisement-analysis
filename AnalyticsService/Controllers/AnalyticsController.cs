@@ -63,6 +63,29 @@ namespace AnalyticsService.Controllers
             return StatusCode((int)response.statusCode, response);
         }
 
+        [HttpPost]
+        [Route("analytics/devices/running-times")]
+        public async Task<IActionResult> PostDeviceRunningTimes(DeviceRunningTimesDto deviceRunningTimesDto)
+        {
+            try
+            {
+                DeviceRunningTimes deviceRunningTime = _analyticsRepository.InsertDeviceRunningTime(deviceRunningTimesDto);
+                await _context.DeviceRunningTimes.AddAsync(deviceRunningTime);
+                await _context.SaveChangesAsync();
+            }
+            catch (ArgumentNullException ex)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                dynamic errorResponse = ReturnResponse.ExceptionResponse(ex);
+                return StatusCode(StatusCodes.Status400BadRequest, errorResponse.message);
+            }
+            dynamic response = ReturnResponse.SuccessResponse(CommonMessage.AnalyticsInsert, true);
+            return StatusCode((int)response.statusCode, response);
+        }
+
         [HttpGet]
         [Route("analytics/promotions/lastdate")]
         public IActionResult Get(string Include, string type, [FromQuery] Pagination pageInfo)
