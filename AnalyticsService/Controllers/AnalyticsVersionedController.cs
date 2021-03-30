@@ -11,13 +11,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AnalyticsService.Controllers
 {
-    [Route("api")]
     [ApiController]
-    public class AnalyticsController : ControllerBase
+    [ApiVersion( "1.0" )]
+    [Route("v{version:apiVersion}/")]
+    public class AnalyticsVersionedController : ControllerBase
     {
         private readonly IAnalyticsRepository _analyticsRepository;
         private readonly analyticsserviceContext _context;
-        public AnalyticsController(IAnalyticsRepository analyticsRepository, analyticsserviceContext context)
+        public AnalyticsVersionedController(IAnalyticsRepository analyticsRepository, analyticsserviceContext context)
         {
             _analyticsRepository = analyticsRepository;
             _context = context;
