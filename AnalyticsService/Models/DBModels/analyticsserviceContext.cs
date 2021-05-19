@@ -17,7 +17,8 @@ namespace AnalyticsService.Models.DBModels
 
         public virtual DbSet<LinkLogs> LinkLogs { get; set; }
         public virtual DbSet<PromotionAnalytics> PromotionAnalytics { get; set; }
-        public virtual DbSet<Playbacks> Playbacks { get; set; }
+        public virtual DbSet<Playback> Playbacks { get; set; }
+        public virtual DbSet<PlaybackSlots> PlaybackSlots { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,7 +54,7 @@ namespace AnalyticsService.Models.DBModels
                 entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
             });
 
-            modelBuilder.Entity<Playbacks>(entity =>
+            modelBuilder.Entity<Playback>(entity =>
             {
                 entity.HasKey(e => e.PlaybackId).HasName("PRIMARY");
 
@@ -67,17 +68,37 @@ namespace AnalyticsService.Models.DBModels
 
                 entity.Property(e => e.Date)
                     .HasColumnName("date")
-                    .HasColumnType("timestamp");
-
-                entity.Property(e => e.Count).HasColumnName("count");
+                    .HasColumnType("datetime");
 
                 entity.Property(e => e.MediaType)
                     .HasColumnName("media_type")
                     .HasColumnType("enum('video','image')")
                     .HasCharSet("utf8mb4")
                     .HasCollation("utf8mb4_0900_ai_ci");
+            });
 
-                entity.Property(e => e.Length).HasColumnName("length");
+            modelBuilder.Entity<PlaybackSlots>(entity =>
+            {
+                entity.HasKey(e => e.PlaybackSlotId).HasName("PRIMARY");
+
+                entity.ToTable("playback_slots");
+
+                entity.Property(e => e.PlaybackSlotId).HasColumnName("playback_slot_id");
+
+                entity.Property(e => e.PlaybackId).HasColumnName("playback_id");
+
+                entity.Property(e => e.Value).HasColumnName("value");
+
+                entity.Property(e => e.Slot)
+                    .HasColumnName("slot")
+                    .HasColumnType("enum('morning', 'noon', 'evening', 'night')")
+                    .HasCharSet("utf8mb4")
+                    .HasCollation("utf8mb4_0900_ai_ci");
+
+                entity.HasOne(d => d.Playbacks)
+                    .WithMany(p => p.Slots)
+                    .HasForeignKey(d => d.PlaybackId)
+                    .HasConstraintName("playback_slots_ibfk_1");
             });
 
             modelBuilder.Entity<PromotionAnalytics>(entity =>

@@ -9,6 +9,7 @@ namespace AnalyticsService.Models
     {
         public static string ExceptionMessage = "Something went wrong. Error Message - ";
         public static string EmptyModel = "Pass valid model.";
+        public static string EmptyPlaybacks = "Passed playback list is empty";
         public static string AnalyticsRetrived = "Analytics retrived successfully.";
         public static string AnalyticsNotFound = "Analytics not found.";
         public static string AnalyticsDelete = "Analytics deleted successfully.";
