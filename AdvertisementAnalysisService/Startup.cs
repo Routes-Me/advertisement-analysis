@@ -42,6 +42,13 @@ namespace AdvertisementAnalysisService
                 options.UseMySql(Configuration.GetConnectionString("DefaultConnection"));
             });
 
+            services.AddApiVersioning(config =>
+            {
+                config.DefaultApiVersion = new ApiVersion(1, 0);
+                config.AssumeDefaultVersionWhenUnspecified = true;
+                config.ReportApiVersions = true;
+            });
+
             services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
             {
                 builder.AllowAnyOrigin()
