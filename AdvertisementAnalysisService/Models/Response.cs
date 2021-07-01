@@ -74,4 +74,15 @@ namespace AdvertisementAnalysisService.Models
         public List<InstitutionsModel> data { get; set; }
     }
 
+    public class PlaybacksGetResponse
+    {
+        public Pagination pagination { get; set; }
+        public List<PlaybackDto> data { get; set; }
+    }
+
+    public class ErrorResponse
+    {
+        public string Error { get; set; }
+    }
+
 }

@@ -5,6 +5,7 @@ using AdvertisementAnalysisService.Models.DBModels;
 using AdvertisementAnalysisService.Models.ResponseModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using RoutesSecurity;
 using System;
@@ -157,7 +158,7 @@ namespace AdvertisementAnalysisService.Repository
                 var slots = playbackDto.Slots.Select(slot =>
                     new PlaybackSlots{
                         Value = slot.Value,
-                        Slot = PeriodEnumHandler.GetPeriod(slot.Period)
+                        Slot = PeriodEnumHandler.ConvertPeriodEnumToString(slot.Period)
                     }
                 );
                 foreach (var slot in slots)
@@ -167,6 +168,40 @@ namespace AdvertisementAnalysisService.Repository
             }
 
             return playbacksList;
+        }
+
+        public dynamic GetPlaybacks(string startAtTimestamp, string endAtTimestamp, Pagination pageInfo)
+        {
+            DateTime startAt = string.IsNullOrEmpty(startAtTimestamp) ? DateTime.MinValue : UnixTimeStampToDateTime(startAtTimestamp);
+            DateTime endAt = string.IsNullOrEmpty(endAtTimestamp) ? DateTime.MaxValue : UnixTimeStampToDateTime(endAtTimestamp);
+
+            List<PlaybackDto> playbackDtos = _context.Playbacks
+                .Include(p => p.Slots)
+                .Where(p => p.Date >= startAt && p.Date <= endAt)
+                .AsEnumerable()
+                .GroupBy(p => new {p.Date, p.AdvertisementId})
+                .ToList()
+                .Select(g => new PlaybackDto
+                {
+                    AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
+                    Date = DateTimeToUnixTimeStamp(g.FirstOrDefault().Date),
+                    Slots = g.Select(g => g.Slots).FirstOrDefault().Select(s => new PlaybackSlotsDto {
+                        Period = s.Slot,
+                        Value = SumPeriods(g.ToList(), s.Slot)
+                    }).ToList(),
+                })
+                .ToList();
+
+            return new PlaybacksGetResponse
+            {
+                data = playbackDtos,
+                pagination = new Pagination
+                {
+                    offset = pageInfo.offset,
+                    limit = pageInfo.limit,
+                    total = playbackDtos.Count
+                }
+            };
         }
 
         public void InsertAnalyticsFromLinks()
@@ -359,10 +394,13 @@ namespace AdvertisementAnalysisService.Repository
             return dtDateTime;
         }
 
-        public static string DateTimeToUnixTimeStamp(DateTime? dateTime)
+        private static long DateTimeToUnixTimeStamp(DateTime? dateTime)
         {
-            double timestamp = (Double)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            return Convert.ToString(timestamp);
+            return (long)((DateTimeOffset)dateTime).ToUnixTimeSeconds();
+        }
+
+        private int SumPeriods(List<Playback> pbl, string slotPeriod) {
+            return pbl.Select(p => p.Slots).SelectMany(s => s.Where(sl => sl.Slot.Equals(slotPeriod))).Sum(s => s.Value);
         }
     }
 }

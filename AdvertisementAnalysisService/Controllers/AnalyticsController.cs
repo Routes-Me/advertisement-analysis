@@ -65,6 +65,22 @@ namespace AdvertisementAnalysisService.Controllers
         }
 
         [HttpGet]
+        [Route("analytics/playbacks")]
+        public IActionResult GetPlaybacks(string startAt, string endAt, [FromQuery] Pagination pageInfo)
+        {
+            PlaybacksGetResponse response = new PlaybacksGetResponse();
+            try
+            {
+                response = _analyticsRepository.GetPlaybacks(startAt, endAt, pageInfo);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new ErrorResponse{ Error = ex.Message });
+            }
+            return StatusCode(StatusCodes.Status200OK, response);
+        }
+
+        [HttpGet]
         [Route("analytics/promotions/lastdate")]
         public IActionResult Get(string Include, string type, [FromQuery] Pagination pageInfo)
         {

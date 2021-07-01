@@ -8,8 +8,9 @@ namespace AdvertisementAnalysisService.Abstraction
     public interface IAnalyticsRepository
     {
         dynamic InsertAnalytics(AnalyticsModel model);
-        public dynamic InsertLinksLog(LinkLogsModel model);
-        public dynamic InsertPlaybacks(string deviceId, List<PlaybackDto> playbackDtoList);
+        dynamic InsertLinksLog(LinkLogsModel model);
+        dynamic InsertPlaybacks(string deviceId, List<PlaybackDto> playbackDtoList);
+        dynamic GetPlaybacks(string startAt, string endAt, Pagination pageInfo);
         dynamic GetAnalytics(string include, string type, Pagination pageInfo);
         void InsertAnalyticsFromLinks();
 
