@@ -81,6 +81,22 @@ namespace AdvertisementAnalysisService.Controllers
         }
 
         [HttpGet]
+        [Route("analytics/linklogs")]
+        public IActionResult GetLinkLogs(string startAt, string endAt, [FromQuery] Pagination pageInfo)
+        {
+            LinkLogsGetResponse response = new LinkLogsGetResponse();
+            try
+            {
+                response = _analyticsRepository.GetLinkLogs(startAt, endAt, pageInfo);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new ErrorResponse{ Error = ex.Message });
+            }
+            return StatusCode(StatusCodes.Status200OK, response);
+        }
+
+        [HttpGet]
         [Route("analytics/promotions/lastdate")]
         public IActionResult Get(string Include, string type, [FromQuery] Pagination pageInfo)
         {

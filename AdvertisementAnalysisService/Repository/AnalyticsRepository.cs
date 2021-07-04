@@ -177,7 +177,7 @@ namespace AdvertisementAnalysisService.Repository
 
             List<PlaybackDto> playbackDtos = _context.Playbacks
                 .Include(p => p.Slots)
-                .Where(p => p.Date >= startAt && p.Date <= endAt)
+                .Where(p => p.Date.Date >= startAt && p.Date <= endAt)
                 .AsEnumerable()
                 .GroupBy(p => new {p.Date, p.AdvertisementId})
                 .ToList()
@@ -200,6 +200,39 @@ namespace AdvertisementAnalysisService.Repository
                     offset = pageInfo.offset,
                     limit = pageInfo.limit,
                     total = playbackDtos.Count
+                }
+            };
+        }
+
+        public dynamic GetLinkLogs(string startAtTimestamp, string endAtTimestamp, Pagination pageInfo)
+        {
+            DateTime startAt = string.IsNullOrEmpty(startAtTimestamp) ? DateTime.MinValue : UnixTimeStampToDateTime(startAtTimestamp);
+            DateTime endAt = string.IsNullOrEmpty(endAtTimestamp) ? DateTime.MaxValue : UnixTimeStampToDateTime(endAtTimestamp);
+
+            List<LinkLogsDto> linkLogsDtos = _context.LinkLogs
+                .Where(l => l.CreatedAt >= startAt && l.CreatedAt <= endAt)
+                .AsEnumerable()
+                .GroupBy(l => new {l.CreatedAt.Date, l.AdvertisementId})
+                .ToList()
+                .Select(g => new LinkLogsDto
+                {
+                    AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
+                    CreatedAt = DateTimeToUnixTimeStamp(g.FirstOrDefault().CreatedAt),
+                    OSAndValues = g.GroupBy(c => c.ClientOs).Select(c => new OSAndValue {
+                        OS = c.FirstOrDefault().ClientOs,
+                        Value = c.Count()
+                    }).ToList(),
+                })
+                .ToList();
+
+            return new LinkLogsGetResponse
+            {
+                data = linkLogsDtos,
+                pagination = new Pagination
+                {
+                    offset = pageInfo.offset,
+                    limit = pageInfo.limit,
+                    total = linkLogsDtos.Count
                 }
             };
         }
@@ -399,7 +432,8 @@ namespace AdvertisementAnalysisService.Repository
             return (long)((DateTimeOffset)dateTime).ToUnixTimeSeconds();
         }
 
-        private int SumPeriods(List<Playback> pbl, string slotPeriod) {
+        private int SumPeriods(List<Playback> pbl, string slotPeriod)
+        {
             return pbl.Select(p => p.Slots).SelectMany(s => s.Where(sl => sl.Slot.Equals(slotPeriod))).Sum(s => s.Value);
         }
     }

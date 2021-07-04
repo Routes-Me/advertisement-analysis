@@ -80,6 +80,12 @@ namespace AdvertisementAnalysisService.Models
         public List<PlaybackDto> data { get; set; }
     }
 
+    public class LinkLogsGetResponse
+    {
+        public Pagination pagination { get; set; }
+        public List<LinkLogsDto> data { get; set; }
+    }
+
     public class ErrorResponse
     {
         public string Error { get; set; }
