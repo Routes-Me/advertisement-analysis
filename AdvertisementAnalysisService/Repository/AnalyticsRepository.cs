@@ -177,9 +177,9 @@ namespace AdvertisementAnalysisService.Repository
 
             List<PlaybackDto> playbackDtos = _context.Playbacks
                 .Include(p => p.Slots)
-                .Where(p => p.Date.Date >= startAt && p.Date <= endAt)
+                .Where(p => p.Date >= startAt && p.Date <= endAt)
                 .AsEnumerable()
-                .GroupBy(p => new {p.Date, p.AdvertisementId})
+                .GroupBy(p => new {p.Date.Date, p.AdvertisementId})
                 .ToList()
                 .Select(g => new PlaybackDto
                 {
