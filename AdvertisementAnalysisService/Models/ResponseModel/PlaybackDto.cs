@@ -7,6 +7,7 @@ namespace AdvertisementAnalysisService.Models.DBModels
         public string PlaybackId { get; set; }
         public string DeviceId { get; set; }
         public string AdvertisementId { get; set; }
+        public string AdvertisementName { get; set; }
         public long Date { get; set; }
         public string MediaType { get; set; }
         public List<PlaybackSlotsDto> Slots { get; set; }

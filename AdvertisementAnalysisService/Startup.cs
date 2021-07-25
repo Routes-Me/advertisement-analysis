@@ -38,7 +38,7 @@ namespace AdvertisementAnalysisService
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             });
 
-            services.AddDbContext<analyticsserviceContext>(options =>
+            services.AddDbContext<AnalyticsContext>(options =>
             {
                 options.UseMySql(Configuration.GetConnectionString("DefaultConnection"));
             });

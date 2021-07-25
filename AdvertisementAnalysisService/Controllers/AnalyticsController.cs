@@ -17,8 +17,8 @@ namespace AdvertisementAnalysisService.Controllers
     public class AnalyticsController : ControllerBase
     {
         private readonly IAnalyticsRepository _analyticsRepository;
-        private readonly analyticsserviceContext _context;
-        public AnalyticsController(IAnalyticsRepository analyticsRepository, analyticsserviceContext context)
+        private readonly AnalyticsContext _context;
+        public AnalyticsController(IAnalyticsRepository analyticsRepository, AnalyticsContext context)
         {
             _analyticsRepository = analyticsRepository;
             _context = context;

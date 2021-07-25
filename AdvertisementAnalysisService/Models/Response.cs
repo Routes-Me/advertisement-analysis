@@ -1,12 +1,11 @@
 ﻿using AdvertisementAnalysisService.Models.DBModels;
 using AdvertisementAnalysisService.Models.ResponseModel;
+using AdvertisementAnalysisService.Internal.Dtos;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AdvertisementAnalysisService.Models
 {
@@ -76,14 +75,19 @@ namespace AdvertisementAnalysisService.Models
 
     public class PlaybacksGetResponse
     {
-        public Pagination pagination { get; set; }
-        public List<PlaybackDto> data { get; set; }
+        public Pagination Pagination { get; set; }
+        public List<PlaybackDto> Data { get; set; }
     }
 
     public class LinkLogsGetResponse
     {
-        public Pagination pagination { get; set; }
-        public List<LinkLogsDto> data { get; set; }
+        public Pagination Pagination { get; set; }
+        public List<LinkLogsDto> Data { get; set; }
+    }
+
+    public class AdvertisementsGetReportDto
+    {
+        public List<AdvertisementReportDto> Data { get; set; }
     }
 
     public class ErrorResponse

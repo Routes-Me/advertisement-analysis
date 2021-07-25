@@ -5,6 +5,7 @@ namespace AdvertisementAnalysisService.Models.DBModels
     public class LinkLogsDto
     {
         public string AdvertisementId { get; set; }
+        public string AdvertisementName { get; set; }
         public long CreatedAt { get; set; }
         public List<OSAndValue> OSAndValues { get; set; }
     }

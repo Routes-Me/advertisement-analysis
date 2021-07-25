@@ -20,9 +20,9 @@ namespace AdvertisementAnalysisService.Repository
 
         private readonly AppSettings _appSettings;
         private readonly Dependencies _dependencies;
-        private readonly analyticsserviceContext _context;
+        private readonly AnalyticsContext _context;
 
-        public IncludedRepository(IOptions<AppSettings> appSettings, analyticsserviceContext context, IOptions<Dependencies> dependencies)
+        public IncludedRepository(IOptions<AppSettings> appSettings, AnalyticsContext context, IOptions<Dependencies> dependencies)
         {
             _appSettings = appSettings.Value;
             _context = context;
