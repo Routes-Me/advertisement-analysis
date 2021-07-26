@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace AdvertisementAnalysisService.Models.DBModels
 {
-    public partial class analyticsserviceContext : DbContext
+    public partial class AnalyticsContext : DbContext
     {
-        public analyticsserviceContext()
+        public AnalyticsContext()
         {
         }
 
-        public analyticsserviceContext(DbContextOptions<analyticsserviceContext> options)
+        public AnalyticsContext(DbContextOptions<AnalyticsContext> options)
             : base(options)
         {
         }

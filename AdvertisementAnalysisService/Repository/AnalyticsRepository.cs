@@ -3,14 +3,18 @@ using AdvertisementAnalysisService.Models;
 using AdvertisementAnalysisService.Models.Common;
 using AdvertisementAnalysisService.Models.DBModels;
 using AdvertisementAnalysisService.Models.ResponseModel;
+using AdvertisementAnalysisService.Internal.Dtos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using RoutesSecurity;
+using RestSharp;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace AdvertisementAnalysisService.Repository
@@ -18,12 +22,14 @@ namespace AdvertisementAnalysisService.Repository
     public class AnalyticsRepository : IAnalyticsRepository
     {
         private readonly AppSettings _appSettings;
-        private readonly analyticsserviceContext _context;
+        private readonly Dependencies _dependencies;
+        private readonly AnalyticsContext _context;
         private readonly IIncludedRepository _includedRepository;
 
-        public AnalyticsRepository(IOptions<AppSettings> appSettings, analyticsserviceContext context, IIncludedRepository includedRepository)
+        public AnalyticsRepository(IOptions<AppSettings> appSettings, IOptions<Dependencies> dependencies, AnalyticsContext context, IIncludedRepository includedRepository)
         {
             _appSettings = appSettings.Value;
+            _dependencies = dependencies.Value;
             _context = context;
             _includedRepository = includedRepository;
         }
@@ -175,15 +181,26 @@ namespace AdvertisementAnalysisService.Repository
             DateTime startAt = string.IsNullOrEmpty(startAtTimestamp) ? DateTime.MinValue : UnixTimeStampToDateTime(startAtTimestamp);
             DateTime endAt = string.IsNullOrEmpty(endAtTimestamp) ? DateTime.MaxValue : UnixTimeStampToDateTime(endAtTimestamp);
 
-            List<PlaybackDto> playbackDtos = _context.Playbacks
+            var playbacks = _context.Playbacks
                 .Include(p => p.Slots)
                 .Where(p => p.Date >= startAt && p.Date <= endAt)
                 .AsEnumerable()
                 .GroupBy(p => new {p.Date.Date, p.AdvertisementId})
-                .ToList()
+                .Skip((pageInfo.offset - 1) * pageInfo.limit)
+                .Take(pageInfo.limit)
+                .ToList();
+
+            List<int> advertisementIds = playbacks
+                .Select(v => v.FirstOrDefault().AdvertisementId)
+                .ToHashSet()
+                .ToList();
+            List<AdvertisementReportDto> advertisementsData = JsonConvert.DeserializeObject<AdvertisementsGetReportDto>(CallReportAPI(_dependencies.AdvertisementsReportUrl, advertisementIds, "attr=Name").Content).Data;
+
+            List<PlaybackDto> playbackDtos = playbacks
                 .Select(g => new PlaybackDto
                 {
                     AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
+                    AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
                     Date = DateTimeToUnixTimeStamp(g.FirstOrDefault().Date),
                     Slots = g.Select(g => g.Slots).FirstOrDefault().Select(s => new PlaybackSlotsDto {
                         Period = s.Slot,
@@ -194,8 +211,8 @@ namespace AdvertisementAnalysisService.Repository
 
             return new PlaybacksGetResponse
             {
-                data = playbackDtos,
-                pagination = new Pagination
+                Data = playbackDtos,
+                Pagination = new Pagination
                 {
                     offset = pageInfo.offset,
                     limit = pageInfo.limit,
@@ -209,14 +226,25 @@ namespace AdvertisementAnalysisService.Repository
             DateTime startAt = string.IsNullOrEmpty(startAtTimestamp) ? DateTime.MinValue : UnixTimeStampToDateTime(startAtTimestamp);
             DateTime endAt = string.IsNullOrEmpty(endAtTimestamp) ? DateTime.MaxValue : UnixTimeStampToDateTime(endAtTimestamp);
 
-            List<LinkLogsDto> linkLogsDtos = _context.LinkLogs
+            var linkLogs = _context.LinkLogs
                 .Where(l => l.CreatedAt >= startAt && l.CreatedAt <= endAt)
                 .AsEnumerable()
                 .GroupBy(l => new {l.CreatedAt.Date, l.AdvertisementId})
-                .ToList()
-                .Select(g => new LinkLogsDto
+                .Skip((pageInfo.offset - 1) * pageInfo.limit)
+                .Take(pageInfo.limit)
+                .ToList();
+
+            List<int> advertisementIds = linkLogs
+                .Select(v => v.FirstOrDefault().AdvertisementId)
+                .ToHashSet()
+                .ToList();
+            List<AdvertisementReportDto> advertisementsData = JsonConvert.DeserializeObject<AdvertisementsGetReportDto>(CallReportAPI(_dependencies.AdvertisementsReportUrl, advertisementIds, "attr=Name").Content).Data;
+
+            List<LinkLogsDto> linkLogsDtos = linkLogs
+               .Select(g => new LinkLogsDto
                 {
                     AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
+                    AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
                     CreatedAt = DateTimeToUnixTimeStamp(g.FirstOrDefault().CreatedAt),
                     OSAndValues = g.GroupBy(c => c.ClientOs).Select(c => new OSAndValue {
                         OS = c.FirstOrDefault().ClientOs,
@@ -227,8 +255,8 @@ namespace AdvertisementAnalysisService.Repository
 
             return new LinkLogsGetResponse
             {
-                data = linkLogsDtos,
-                pagination = new Pagination
+                Data = linkLogsDtos,
+                Pagination = new Pagination
                 {
                     offset = pageInfo.offset,
                     limit = pageInfo.limit,
@@ -417,6 +445,37 @@ namespace AdvertisementAnalysisService.Repository
             {
                 return ReturnResponse.ExceptionResponse(ex);
             }
+        }
+
+        private dynamic CallReportAPI(string url, dynamic objectToSend, string query = "")
+        {
+            UriBuilder uriBuilder = new UriBuilder(_appSettings.Host + url);
+            uriBuilder = AppendQueryToUrl(uriBuilder, query);
+            var client = new RestClient(uriBuilder.Uri);
+            var request = new RestRequest(Method.POST);
+
+            string jsonToSend = JsonConvert.SerializeObject(objectToSend);
+            request.AddParameter("application/json; charset=utf-8", jsonToSend, ParameterType.RequestBody);
+            request.RequestFormat = DataFormat.Json;
+
+            IRestResponse response = client.Execute(request);
+
+            if (response.StatusCode == 0)
+                throw new HttpListenerException(400, CommonMessage.ConnectionFailure);
+
+            if (!response.IsSuccessful)
+                throw new HttpListenerException((int)response.StatusCode, response.Content);
+
+            return response;
+        }
+
+        private UriBuilder AppendQueryToUrl(UriBuilder baseUri, string queryToAppend)
+        {
+            if (baseUri.Query != null && baseUri.Query.Length > 1)
+                baseUri.Query = baseUri.Query.Substring(1) + "&" + queryToAppend;
+            else
+                baseUri.Query = queryToAppend;
+            return baseUri;
         }
 
         public static DateTime UnixTimeStampToDateTime(string unixTimeStamp)

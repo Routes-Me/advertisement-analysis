@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AdvertisementAnalysisService.Models
+﻿namespace AdvertisementAnalysisService.Models
 {
     public class CommonMessage
     {
@@ -16,5 +11,6 @@ namespace AdvertisementAnalysisService.Models
         public static string AnalyticsInsert = "Analytics inserted successfully.";
         public static string AnalyticsUpdate = "Analytics updated successfully.";
         public static string TypeRequired = "Valid type required.";
+        public static string ConnectionFailure = "Request cannot be executed: unable to establish connection with the targeted machine.";
     }
 }
