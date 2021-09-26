@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
+using AdvertisementAnalysisService.Helper;
 
 namespace AdvertisementAnalysisService
 {
@@ -69,8 +70,9 @@ namespace AdvertisementAnalysisService
             var appSettingsSection = Configuration.GetSection("AppSettings");
             var appSettings = appSettingsSection.Get<AppSettings>();
             services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
-
+            services.AddScoped<IReportService, ReportService>();
             services.AddScoped<IIncludedRepository, IncludedRepository>();
+            services.AddScoped<IAnalyticsAsyncReposiory, AnalyticsAsyncRepository>();
 
             services.AddApiVersioning(config =>
             {

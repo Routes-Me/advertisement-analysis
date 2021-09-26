@@ -12,15 +12,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace AdvertisementAnalysisService.Controllers
 {
     [ApiController]
-    [ApiVersion( "1.0" )]
+    [ApiVersion("1.0")]
     [Route("v{version:apiVersion}/")]
     public class AnalyticsController : ControllerBase
     {
         private readonly IAnalyticsRepository _analyticsRepository;
         private readonly AnalyticsContext _context;
-        public AnalyticsController(IAnalyticsRepository analyticsRepository, AnalyticsContext context)
+        private readonly IAnalyticsAsyncReposiory _analyticsAsyncRepository;
+        public AnalyticsController(IAnalyticsRepository analyticsRepository, IAnalyticsAsyncReposiory analyticsAsync, AnalyticsContext context)
         {
             _analyticsRepository = analyticsRepository;
+            _analyticsAsyncRepository = analyticsAsync;
             _context = context;
         }
 
@@ -66,16 +68,16 @@ namespace AdvertisementAnalysisService.Controllers
 
         [HttpGet]
         [Route("analytics/playbacks")]
-        public IActionResult GetPlaybacks(string startAt, string endAt, [FromQuery] Pagination pageInfo)
+        public async Task<IActionResult> GetPlaybacks(string startAt, string endAt, [FromQuery] Pagination pageInfo)
         {
             PlaybacksGetResponse response = new PlaybacksGetResponse();
             try
             {
-                response = _analyticsRepository.GetPlaybacks(startAt, endAt, pageInfo);
+                response = await _analyticsAsyncRepository.GetPlayBacksAsync(startAt, endAt, pageInfo);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, new ErrorResponse{ Error = ex.Message });
+                return StatusCode(StatusCodes.Status400BadRequest, new ErrorResponse { Error = ex.Message });
             }
             return StatusCode(StatusCodes.Status200OK, response);
         }
@@ -91,7 +93,7 @@ namespace AdvertisementAnalysisService.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status400BadRequest, new ErrorResponse{ Error = ex.Message });
+                return StatusCode(StatusCodes.Status400BadRequest, new ErrorResponse { Error = ex.Message });
             }
             return StatusCode(StatusCodes.Status200OK, response);
         }
@@ -106,7 +108,7 @@ namespace AdvertisementAnalysisService.Controllers
 
         [HttpGet]
         [Route("analytics/promotions/{analyticId?}")]
-        public IActionResult GetAnalyticsData(string analyticsId, string institutionId, List<SearchDto> groupBy, string start_at, string end_at, string include,[FromQuery] Pagination pageInfo)
+        public IActionResult GetAnalyticsData(string analyticsId, string institutionId, List<SearchDto> groupBy, string start_at, string end_at, string include, [FromQuery] Pagination pageInfo)
         {
             dynamic response = _analyticsRepository.GetAnalyticsData(analyticsId, institutionId, groupBy, start_at, end_at, include, pageInfo);
             return StatusCode(response.statusCode, response);
