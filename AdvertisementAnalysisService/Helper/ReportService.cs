@@ -52,6 +52,7 @@ namespace AdvertisementAnalysisService.Helper
                 .ToList();
             //List<AdvertisementReportDto> advertisementsData = JsonConvert.DeserializeObject<AdvertisementsGetReportDto>(await CallReportAPI(_dependencies.AdvertisementsReportUrl, advertisementIds, "attr=Name").Content).Data;
             var advertisementsData = await CallReportAPI(_appSettings.Host, _dependencies.AdvertisementsReportUrl, advertisementIds, "attr=Name");
+            var serializedDataList = JsonConvert.DeserializeObject<AdvertisementsGetReportDto>(advertisementsData.Content).Data.ToList();
 
             return playbacks
                 .Select(g =>
@@ -60,7 +61,7 @@ namespace AdvertisementAnalysisService.Helper
                     return new PlaybackDto
                     {
                         AdvertisementId = Obfuscation.Encode(g.Key),
-                        // AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.Key).FirstOrDefault()?.Name,
+                        AdvertisementName = serializedDataList.Where(v => v.AdvertisementId == g.Key).FirstOrDefault()?.Name,
                         Slots = SumPeriodsForAdvertisementId(g.ToList()),
                     };
                 })
