@@ -9,6 +9,7 @@ namespace AdvertisementAnalysisService.Models.DBModels
         public int? PromotionId { get; set; }
         public int AdvertisementId { get; set; }
         public int? InstitutionId { get; set; }
+        public int? DeviceId { get; set; }
         public string ClientBrowser { get; set; }
         public string ClientOs { get; set; }
         public DateTime CreatedAt { get; set; }

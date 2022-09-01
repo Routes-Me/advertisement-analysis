@@ -126,11 +126,13 @@ namespace AdvertisementAnalysisService.Repository
                 int promotionId = Obfuscation.Decode(model.PromotionId);
                 int advertisementId = Obfuscation.Decode(model.AdvertisementId);
                 int institutionId = Obfuscation.Decode(model.InstitutionId);
+                int deviceId = Obfuscation.Decode(model.DeviceId);
 
                 LinkLogs linkLogs = new LinkLogs();
                 linkLogs.PromotionId = promotionId;
                 linkLogs.AdvertisementId = advertisementId;
                 linkLogs.InstitutionId = institutionId;
+                linkLogs.DeviceId = deviceId;
                 linkLogs.ClientBrowser = model.ClientBrowser;
                 linkLogs.ClientOs = model.ClientOs;
                 linkLogs.CreatedAt = DateTime.Now;

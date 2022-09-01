@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AdvertisementAnalysisService.Models.ResponseModel
 {
@@ -11,6 +8,7 @@ namespace AdvertisementAnalysisService.Models.ResponseModel
         public string PromotionId { get; set; }
         public string AdvertisementId { get; set; }
         public string InstitutionId { get; set; }
+        public string DeviceId { get; set; }
         public string ClientBrowser { get; set; }
         public string ClientOs { get; set; }
         public DateTime? CreatedAt { get; set; }

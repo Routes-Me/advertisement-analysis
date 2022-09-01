@@ -52,6 +52,8 @@ namespace AdvertisementAnalysisService.Models.DBModels
                 entity.Property(e => e.InstitutionId).HasColumnName("institution_id");
 
                 entity.Property(e => e.PromotionId).HasColumnName("promotion_id");
+
+                entity.Property(e => e.DeviceId).HasColumnName("device_id");
             });
 
             modelBuilder.Entity<Playback>(entity =>
