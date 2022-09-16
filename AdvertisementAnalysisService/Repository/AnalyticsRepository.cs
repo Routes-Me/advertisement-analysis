@@ -244,15 +244,15 @@ namespace AdvertisementAnalysisService.Repository
 
             List<LinkLogsDto> linkLogsDtos = linkLogs
                .Select(g => new LinkLogsDto
-                {
-                    AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
-                    AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
-                    CreatedAt = DateTimeToUnixTimeStamp(g.FirstOrDefault().CreatedAt),
+               {
+                   AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
+                   AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
+                   CreatedAt = DateTimeToUnixTimeStamp(g.FirstOrDefault().CreatedAt),
                     OSAndValues = g.GroupBy(c => c.ClientOs).Select(c => new OSAndValue {
-                        OS = c.FirstOrDefault().ClientOs,
-                        Value = c.Count()
-                    }).ToList(),
-                })
+                       OS = c.FirstOrDefault().ClientOs,
+                       Value = c.Count()
+                   }).ToList(),
+               })
                 .ToList();
 
             return new LinkLogsGetResponse
@@ -449,6 +449,62 @@ namespace AdvertisementAnalysisService.Repository
             }
         }
 
+        public dynamic GetDriversLinkLogs(string driverId, string startAtTimestamp, string endAtTimestamp, Pagination pageInfo)
+        {
+            try
+            {
+                DateTime startAt = string.IsNullOrEmpty(startAtTimestamp) ? DateTime.MinValue : UnixTimeStampToDateTime(startAtTimestamp);
+                DateTime endAt = string.IsNullOrEmpty(endAtTimestamp) ? DateTime.MaxValue : UnixTimeStampToDateTime(endAtTimestamp);
+
+
+
+                var linkLogs = _context.LinkLogs.Where(l => l.CreatedAt >= startAt && l.CreatedAt <= endAt).AsEnumerable().GroupBy(l => new { l.CreatedAt.Date, l.AdvertisementId, l.DeviceId }).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
+
+
+                List<int> advertisementIds = linkLogs.Select(v => v.FirstOrDefault().AdvertisementId).ToHashSet().ToList();
+                List<AdvertisementReportDto> advertisementsData = JsonConvert.DeserializeObject<AdvertisementsGetReportDto>(CallReportAPI(_dependencies.AdvertisementsReportUrl, advertisementIds, "attr=Name").Content).Data;
+
+                List<int?> deviceIds = linkLogs.Select(v => v.FirstOrDefault().DeviceId).ToHashSet().ToList();
+
+                var driver = CallDriversAPI(_dependencies.DriversUrl, driverId).Data;
+
+
+                List<LinkLogsDto> linkLogsDtos = linkLogs.Select(g => new LinkLogsDto
+                {
+                    AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
+                    AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
+                    CreatedAt = DateTimeToUnixTimeStamp(g.FirstOrDefault().CreatedAt),
+                    DeviceId = driver.FirstOrDefault().DeviceId,
+                    OSAndValues = g.GroupBy(c => c.ClientOs).Select(c => new OSAndValue
+                    {
+                        OS = c.FirstOrDefault().ClientOs,
+                        Value = c.Count()
+                    }).ToList(),
+                }).ToList();
+
+                var response = new LinkLogsGetResponse
+                {
+                    Data = linkLogsDtos,
+                    Pagination = new Pagination
+                    {
+                        offset = pageInfo.offset,
+                        limit = pageInfo.limit,
+                        total = linkLogsDtos.Count
+                    }
+                };
+                response.Data = linkLogsDtos;
+                response.status = true;
+                response.message = CommonMessage.AnalyticsRetrived;
+                response.statusCode = StatusCodes.Status200OK;
+                return response;
+
+
+            }
+            catch (Exception ex)
+            {
+                return ReturnResponse.ExceptionResponse(ex);
+            }
+        }
         private dynamic CallReportAPI(string url, dynamic objectToSend, string query = "")
         {
             UriBuilder uriBuilder = new UriBuilder(_appSettings.Host + url);
@@ -469,6 +525,30 @@ namespace AdvertisementAnalysisService.Repository
                 throw new HttpListenerException((int)response.StatusCode, response.Content);
 
             return response;
+        }
+
+        private GetDriverDeviceDto CallDriversAPI(string url, string driverId, string query = "")
+        {
+
+            UriBuilder uriBuilder = new UriBuilder(_appSettings.Host + url);
+            uriBuilder = AppendQueryToUrl(uriBuilder, query);
+            var client = new RestClient(uriBuilder.Uri + driverId + "/vehicles?include=devices");
+
+            client.Timeout = -1;
+            var request = new RestRequest(Method.GET);
+            IRestResponse response = client.Execute(request);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var result = response.Content;
+                var driverData = JsonConvert.DeserializeObject<GetDriverDeviceDto>(result);
+                return driverData;
+            }
+
+            else
+            {
+                throw new HttpListenerException(400, CommonMessage.ConnectionFailure);
+            }
         }
 
         private UriBuilder AppendQueryToUrl(UriBuilder baseUri, string queryToAppend)

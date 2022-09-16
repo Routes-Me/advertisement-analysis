@@ -16,5 +16,6 @@ namespace AdvertisementAnalysisService.Abstraction
         void InsertAnalyticsFromLinks();
 
         dynamic GetAnalyticsData(string analyticId, string institutionId, List<SearchDto> groupBy, string start_at, string end_at, string include, Pagination pageInfo);
+        dynamic GetDriversLinkLogs(string driverId,  string start_at, string end_at, Pagination pageInfo);
     }
 }

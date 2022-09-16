@@ -111,5 +111,20 @@ namespace AdvertisementAnalysisService.Controllers
             dynamic response = _analyticsRepository.GetAnalyticsData(analyticsId, institutionId, groupBy, start_at, end_at, include, pageInfo);
             return StatusCode(response.statusCode, response);
         }
+
+        [HttpGet]
+        [Route("analytics/drivers/{driverId}/linklogs")]
+        public IActionResult GetDriversLinkLog(string driverId,  string startAt, string endAt, [FromQuery] Pagination pageInfo)
+        {
+            try
+            {
+                dynamic response = _analyticsRepository.GetDriversLinkLogs(driverId, startAt,  endAt, pageInfo);
+                return StatusCode(response.statusCode, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new ErrorResponse { Error = ex.Message });
+            }
+        }
     }
 }

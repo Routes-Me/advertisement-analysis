@@ -79,7 +79,7 @@ namespace AdvertisementAnalysisService.Models
         public List<PlaybackDto> Data { get; set; }
     }
 
-    public class LinkLogsGetResponse
+    public class LinkLogsGetResponse : Response
     {
         public Pagination Pagination { get; set; }
         public List<LinkLogsDto> Data { get; set; }
@@ -90,6 +90,10 @@ namespace AdvertisementAnalysisService.Models
         public List<AdvertisementReportDto> Data { get; set; }
     }
 
+    public class GetDriverDeviceDto
+    {
+        public List<DriverDeviceDto> Data { get; set;}
+    }
     public class ErrorResponse
     {
         public string Error { get; set; }

@@ -5,5 +5,6 @@
         public string InstitutionUrl { get; set; }
         public string AdvertisementsUrl { get; set; }
         public string AdvertisementsReportUrl { get; set; }
+        public string DriversUrl { get; set; }
     }
 }
