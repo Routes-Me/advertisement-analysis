@@ -11,6 +11,12 @@ namespace AdvertisementAnalysisService.Models.DBModels
         public int? InstitutionId { get; set; }
         public int? Count { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public string Type { get; set; }
+        public PromotionAnalyticsTypeEnum Type { get; set; }
+    }
+    public enum PromotionAnalyticsTypeEnum
+    {
+        coupons,
+        links,
+        places
     }
 }

@@ -9,15 +9,15 @@ namespace AdvertisementAnalysisService.Models.DBModels
     }
     public static class PeriodEnumHandler
     {
-        public static string ConvertPeriodEnumToString(string periodEnum)
+        public static PlaybackSlotsEnum ConvertPeriodEnumToString(string periodEnum)
         {
             switch (periodEnum)
             {
-                case "mo" : return "morning";
-                case "no" : return "noon";
-                case "ev" : return "evening";
-                case "ni" : return "night";
-                default : return "undefined";
+                case "mo": return PlaybackSlotsEnum.morning;
+                case "no": return PlaybackSlotsEnum.noon;
+                case "ev": return PlaybackSlotsEnum.evening;
+                case "ni": return PlaybackSlotsEnum.night;
+                default: return 0;
             }
         }
     }

@@ -12,7 +12,7 @@ namespace AdvertisementAnalysisService.Abstraction
         dynamic GetLinkLogs(string startAt, string endAt, Pagination pageInfo);
         dynamic InsertPlaybacks(string deviceId, List<PlaybackDto> playbackDtoList);
         dynamic GetPlaybacks(string startAt, string endAt, Pagination pageInfo);
-        dynamic GetAnalytics(string include, string type, Pagination pageInfo);
+        dynamic GetAnalytics(string include, PromotionAnalyticsTypeEnum type, Pagination pageInfo);
         void InsertAnalyticsFromLinks();
 
         dynamic GetAnalyticsData(string analyticId, string institutionId, List<SearchDto> groupBy, string start_at, string end_at, string include, Pagination pageInfo);

@@ -49,6 +49,14 @@ namespace AdvertisementAnalysisService.Models.DBModels
                     .HasColumnName("created_at")
                     .HasColumnType("timestamp");
 
+                entity.Property(e=>e.Latitude)
+                .HasColumnName("latitude")
+                .HasColumnType("decimal(11,9)");
+
+                entity.Property(e => e.Longitude)
+                .HasColumnName("longitude")
+                .HasColumnType("decimal(11,9)");
+
                 entity.Property(e => e.InstitutionId).HasColumnName("institution_id");
 
                 entity.Property(e => e.PromotionId).HasColumnName("promotion_id");

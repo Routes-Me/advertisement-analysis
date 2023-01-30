@@ -14,5 +14,7 @@ namespace AdvertisementAnalysisService.Models.ResponseModel
         public string ClientBrowser { get; set; }
         public string ClientOs { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
     }
 }

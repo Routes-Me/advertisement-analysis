@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace AdvertisementAnalysisService.Models.DBModels
 {
@@ -12,5 +13,9 @@ namespace AdvertisementAnalysisService.Models.DBModels
         public string ClientBrowser { get; set; }
         public string ClientOs { get; set; }
         public DateTime CreatedAt { get; set; }
+        [Range(11,10)]
+        public decimal? Longitude { get; set; }
+        [Range(11,10)]
+        public decimal? Latitude { get; set; }
     }
 }

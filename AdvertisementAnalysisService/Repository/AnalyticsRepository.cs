@@ -1,21 +1,20 @@
 ﻿using AdvertisementAnalysisService.Abstraction;
+using AdvertisementAnalysisService.Internal.Dtos;
 using AdvertisementAnalysisService.Models;
 using AdvertisementAnalysisService.Models.Common;
 using AdvertisementAnalysisService.Models.DBModels;
 using AdvertisementAnalysisService.Models.ResponseModel;
-using AdvertisementAnalysisService.Internal.Dtos;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
-using RoutesSecurity;
-using RestSharp;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using RestSharp;
+using RoutesSecurity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace AdvertisementAnalysisService.Repository
 {
@@ -33,13 +32,12 @@ namespace AdvertisementAnalysisService.Repository
             _context = context;
             _includedRepository = includedRepository;
         }
-        public dynamic GetAnalytics(string include, string type, Pagination pageInfo)
+        public dynamic GetAnalytics(string include, PromotionAnalyticsTypeEnum type, Pagination pageInfo)
         {
             try
             {
                 GetAnalyticsResponse response = new GetAnalyticsResponse();
-
-                if (string.IsNullOrEmpty(type))
+                if (string.IsNullOrEmpty(type.ToString()))
                     return ReturnResponse.ErrorResponse(CommonMessage.TypeRequired, StatusCodes.Status400BadRequest);
 
                 var couponAnalytics = _context.PromotionAnalytics.Where(x => x.Type == type).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
@@ -134,6 +132,8 @@ namespace AdvertisementAnalysisService.Repository
                 linkLogs.ClientBrowser = model.ClientBrowser;
                 linkLogs.ClientOs = model.ClientOs;
                 linkLogs.CreatedAt = DateTime.Now;
+                linkLogs.Latitude = model.Latitude;
+                linkLogs.Longitude = model.Longitude;
                 _context.LinkLogs.Add(linkLogs);
                 _context.SaveChanges();
 
@@ -159,12 +159,12 @@ namespace AdvertisementAnalysisService.Repository
                 playback.DeviceId = deviceIdDecrypt;
                 playback.AdvertisementId = Obfuscation.Decode(playbackDto.AdvertisementId);
                 playback.Date = UnixTimeStampToDateTime(playbackDto.Date.ToString());
-                playback.MediaType = playbackDto.MediaType;
+                playback.MediaType = playbackDto.MediaType == PlaybacksMediaTypeEnum.image.ToString() ? PlaybacksMediaTypeEnum.image : PlaybacksMediaTypeEnum.video;
                 playback.Slots = new List<PlaybackSlots>();
                 var slots = playbackDto.Slots.Select(slot =>
                     new PlaybackSlots{
                         Value = slot.Value,
-                        Slot = PeriodEnumHandler.ConvertPeriodEnumToString(slot.Period)
+                        Slot = PeriodEnumHandler.ConvertPeriodEnumToString(slot.Period.ToString())
                     }
                 );
                 foreach (var slot in slots)
@@ -202,8 +202,9 @@ namespace AdvertisementAnalysisService.Repository
                     AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
                     AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
                     Date = DateTimeToUnixTimeStamp(g.FirstOrDefault().Date),
-                    Slots = g.Select(g => g.Slots).FirstOrDefault().Select(s => new PlaybackSlotsDto {
-                        Period = s.Slot,
+                    Slots = g.Select(g => g.Slots).FirstOrDefault().Select(s => new PlaybackSlotsDto
+                    {
+                        Period = s.Slot.ToString(),
                         Value = SumPeriods(g.ToList(), s.Slot)
                     }).ToList(),
                 })
@@ -242,15 +243,15 @@ namespace AdvertisementAnalysisService.Repository
 
             List<LinkLogsDto> linkLogsDtos = linkLogs
                .Select(g => new LinkLogsDto
-                {
-                    AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
-                    AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
-                    CreatedAt = DateTimeToUnixTimeStamp(g.FirstOrDefault().CreatedAt),
+               {
+                   AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
+                   AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
+                   CreatedAt = DateTimeToUnixTimeStamp(g.FirstOrDefault().CreatedAt),
                     OSAndValues = g.GroupBy(c => c.ClientOs).Select(c => new OSAndValue {
-                        OS = c.FirstOrDefault().ClientOs,
-                        Value = c.Count()
-                    }).ToList(),
-                })
+                       OS = c.FirstOrDefault().ClientOs,
+                       Value = c.Count()
+                   }).ToList(),
+               })
                 .ToList();
 
             return new LinkLogsGetResponse
@@ -269,7 +270,7 @@ namespace AdvertisementAnalysisService.Repository
         {
             string advertisementId = string.Empty;
             DateTime? lastCouponDate = null;
-            var couponAnalytics = _context.PromotionAnalytics.Where(x => x.Type == "links").OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+            var couponAnalytics = _context.PromotionAnalytics.Where(x => x.Type == PromotionAnalyticsTypeEnum.links).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
             if (couponAnalytics != null)
                 lastCouponDate = couponAnalytics.CreatedAt;
 
@@ -281,13 +282,15 @@ namespace AdvertisementAnalysisService.Repository
                     foreach (var group in linkLogs.GroupBy(x => x.PromotionId))
                     {
                         var items = group.FirstOrDefault();
-                        PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
-                        promotionAnalytics.PromotionId = items.PromotionId;
-                        promotionAnalytics.AdvertisementId = items.AdvertisementId;
-                        promotionAnalytics.InstitutionId = items.InstitutionId;
-                        promotionAnalytics.CreatedAt = DateTime.Now;
-                        promotionAnalytics.Count = group.Count();
-                        promotionAnalytics.Type = "links";
+                        PromotionAnalytics promotionAnalytics = new PromotionAnalytics
+                        {
+                            PromotionId = items.PromotionId,
+                            AdvertisementId = items.AdvertisementId,
+                            InstitutionId = items.InstitutionId,
+                            CreatedAt = DateTime.Now,
+                            Count = group.Count(),
+                            Type = PromotionAnalyticsTypeEnum.links
+                        };
                         _context.PromotionAnalytics.Add(promotionAnalytics);
                         _context.SaveChanges();
                     }
@@ -301,13 +304,15 @@ namespace AdvertisementAnalysisService.Repository
                     foreach (var group in linkLogs.GroupBy(x => x.AdvertisementId))
                     {
                         var items = group.FirstOrDefault();
-                        PromotionAnalytics promotionAnalytics = new PromotionAnalytics();
-                        promotionAnalytics.PromotionId = items.PromotionId;
-                        promotionAnalytics.AdvertisementId = items.AdvertisementId;
-                        promotionAnalytics.InstitutionId = items.InstitutionId;
-                        promotionAnalytics.CreatedAt = DateTime.Now;
-                        promotionAnalytics.Count = group.Count();
-                        promotionAnalytics.Type = "links";
+                        PromotionAnalytics promotionAnalytics = new PromotionAnalytics
+                        {
+                            PromotionId = items.PromotionId,
+                            AdvertisementId = items.AdvertisementId,
+                            InstitutionId = items.InstitutionId,
+                            CreatedAt = DateTime.Now,
+                            Count = group.Count(),
+                            Type = PromotionAnalyticsTypeEnum.links
+                        };
                         _context.PromotionAnalytics.Add(promotionAnalytics);
                         _context.SaveChanges();
                     }
@@ -344,7 +349,7 @@ namespace AdvertisementAnalysisService.Repository
                                                   InstitutionId = Obfuscation.Encode(analytics.InstitutionId.GetValueOrDefault()),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
-                                                  Type = analytics.Type
+                                                  Type = analytics.Type.ToString()
                                               }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
 
                         totalCount = _context.PromotionAnalytics.ToList().Count();
@@ -361,7 +366,7 @@ namespace AdvertisementAnalysisService.Repository
                                                   InstitutionId = Obfuscation.Encode(analytics.InstitutionId.GetValueOrDefault()),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
-                                                  Type = analytics.Type
+                                                  Type = analytics.Type.ToString()
                                               }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
 
                         totalCount = _context.PromotionAnalytics.ToList().Count();
@@ -382,7 +387,7 @@ namespace AdvertisementAnalysisService.Repository
                                                   InstitutionId = Obfuscation.Encode(analytics.InstitutionId.GetValueOrDefault()),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
-                                                  Type = analytics.Type
+                                                  Type = analytics.Type.ToString()
                                               }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
 
                         totalCount = _context.PromotionAnalytics.Where(x => x.AnalyticId == analyticsIdDecrypt).ToList().Count();
@@ -399,7 +404,7 @@ namespace AdvertisementAnalysisService.Repository
                                                   InstitutionId = Obfuscation.Encode(analytics.InstitutionId.GetValueOrDefault()),
                                                   Count = analytics.Count,
                                                   CreatedAt = analytics.CreatedAt,
-                                                  Type = analytics.Type
+                                                  Type = analytics.Type.ToString()
                                               }).AsEnumerable().OrderBy(a => a.AnalyticId).Skip((pageInfo.offset - 1) * pageInfo.limit).Take(pageInfo.limit).ToList();
 
                         totalCount = _context.PromotionAnalytics.Where(x => x.AnalyticId == analyticsIdDecrypt).ToList().Count();
@@ -491,7 +496,7 @@ namespace AdvertisementAnalysisService.Repository
             return (long)((DateTimeOffset)dateTime).ToUnixTimeSeconds();
         }
 
-        private int SumPeriods(List<Playback> pbl, string slotPeriod)
+        private int SumPeriods(List<Playback> pbl, PlaybackSlotsEnum slotPeriod)
         {
             return pbl.Select(p => p.Slots).SelectMany(s => s.Where(sl => sl.Slot.Equals(slotPeriod))).Sum(s => s.Value);
         }

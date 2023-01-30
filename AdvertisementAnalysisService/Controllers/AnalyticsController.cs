@@ -98,7 +98,7 @@ namespace AdvertisementAnalysisService.Controllers
 
         [HttpGet]
         [Route("analytics/promotions/lastdate")]
-        public IActionResult Get(string Include, string type, [FromQuery] Pagination pageInfo)
+        public IActionResult Get(string Include, PromotionAnalyticsTypeEnum type, [FromQuery] Pagination pageInfo)
         {
             dynamic response = _analyticsRepository.GetAnalytics(Include, type, pageInfo);
             return StatusCode(response.statusCode, response);
