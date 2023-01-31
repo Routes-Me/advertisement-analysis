@@ -65,5 +65,23 @@ namespace AdvertisementAnalysisService.Repository
             var institutionsList = lstInstitutions.GroupBy(x => x.InstitutionId).Select(a => a.First()).ToList();
             return Common.SerializeJsonForIncludedRepo(institutionsList.Cast<dynamic>().ToList());
         }
+
+        public dynamic GetVehicleDevicesIncludeData(string vehicleId)
+        {
+            List<PlaybackDto> devices = new List<PlaybackDto>();
+            var client = new RestClient(_appSettings.Host + _dependencies.VehicleUrl + vehicleId + "/devices?include=vehicle");
+            var request = new RestRequest(Method.GET);
+            IRestResponse response = client.Execute(request);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var result = response.Content;
+                var deviceData = JsonConvert.DeserializeObject<PlaybacksGetResponse>(result);
+                devices.AddRange(deviceData.Data);
+            }
+
+            var deviceList = devices.GroupBy(x => x.DeviceId).Select(a => a.First()).ToList();
+            return Common.SerializeJsonForIncludedRepo(deviceList.Cast<dynamic>().ToList());
+
+        }
     }
 }

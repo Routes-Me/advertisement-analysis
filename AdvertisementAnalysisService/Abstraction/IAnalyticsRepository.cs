@@ -11,7 +11,7 @@ namespace AdvertisementAnalysisService.Abstraction
         dynamic InsertLinksLog(LinkLogsModel model);
         dynamic GetLinkLogs(string startAt, string endAt, Pagination pageInfo);
         dynamic InsertPlaybacks(string deviceId, List<PlaybackDto> playbackDtoList);
-        dynamic GetPlaybacks(string startAt, string endAt, Pagination pageInfo);
+        dynamic GetPlaybacks(string startAt, string endAt, string vehicleId, Pagination pageInfo);
         dynamic GetAnalytics(string include, string type, Pagination pageInfo);
         void InsertAnalyticsFromLinks();
 

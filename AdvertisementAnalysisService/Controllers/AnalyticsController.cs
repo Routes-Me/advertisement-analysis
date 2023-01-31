@@ -65,13 +65,13 @@ namespace AdvertisementAnalysisService.Controllers
         }
 
         [HttpGet]
-        [Route("analytics/playbacks")]
-        public IActionResult GetPlaybacks(string startAt, string endAt, [FromQuery] Pagination pageInfo)
+        [Route("analytics/vehicles/{vehicleId}/playbacks")]
+        public IActionResult GetPlaybacks(string startAt, string endAt, string vehicleId, [FromQuery] Pagination pageInfo)
         {
             PlaybacksGetResponse response = new PlaybacksGetResponse();
             try
             {
-                response = _analyticsRepository.GetPlaybacks(startAt, endAt, pageInfo);
+                response = _analyticsRepository.GetPlaybacks(startAt, endAt, vehicleId, pageInfo);
             }
             catch (Exception ex)
             {

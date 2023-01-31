@@ -10,5 +10,6 @@ namespace AdvertisementAnalysisService.Abstraction
     {
         dynamic GetInstitutionsIncludedData(List<PromotionAnalyticsModel> analyticsModelList);
         dynamic GetAdvertisementsIncludedData(List<PromotionAnalyticsModel> analyticsModelList);
+        dynamic GetVehicleDevicesIncludeData(string vehicleId);
     }
 }

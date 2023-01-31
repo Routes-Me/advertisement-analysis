@@ -176,7 +176,7 @@ namespace AdvertisementAnalysisService.Repository
             return playbacksList;
         }
 
-        public dynamic GetPlaybacks(string startAtTimestamp, string endAtTimestamp, Pagination pageInfo)
+        public dynamic GetPlaybacks(string startAtTimestamp, string endAtTimestamp, string vehicleId, Pagination pageInfo)
         {
             DateTime startAt = string.IsNullOrEmpty(startAtTimestamp) ? DateTime.MinValue : UnixTimeStampToDateTime(startAtTimestamp);
             DateTime endAt = string.IsNullOrEmpty(endAtTimestamp) ? DateTime.MaxValue : UnixTimeStampToDateTime(endAtTimestamp);
@@ -185,7 +185,7 @@ namespace AdvertisementAnalysisService.Repository
                 .Include(p => p.Slots)
                 .Where(p => p.Date >= startAt && p.Date <= endAt)
                 .AsEnumerable()
-                .GroupBy(p => new {p.Date.Date, p.AdvertisementId})
+                .GroupBy(p => new {p.Date.Date, p.AdvertisementId, p.DeviceId })
                 .Skip((pageInfo.offset - 1) * pageInfo.limit)
                 .Take(pageInfo.limit)
                 .ToList();
@@ -195,6 +195,8 @@ namespace AdvertisementAnalysisService.Repository
                 .ToHashSet()
                 .ToList();
             List<AdvertisementReportDto> advertisementsData = JsonConvert.DeserializeObject<AdvertisementsGetReportDto>(CallReportAPI(_dependencies.AdvertisementsReportUrl, advertisementIds, "attr=Name").Content).Data;
+
+            var deviceData = _includedRepository.GetVehicleDevicesIncludeData(vehicleId);
 
             List<PlaybackDto> playbackDtos = playbacks
                 .Select(g => new PlaybackDto
@@ -242,15 +244,15 @@ namespace AdvertisementAnalysisService.Repository
 
             List<LinkLogsDto> linkLogsDtos = linkLogs
                .Select(g => new LinkLogsDto
-                {
-                    AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
-                    AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
-                    CreatedAt = DateTimeToUnixTimeStamp(g.FirstOrDefault().CreatedAt),
+               {
+                   AdvertisementId = Obfuscation.Encode(g.FirstOrDefault().AdvertisementId),
+                   AdvertisementName = advertisementsData.Where(v => v.AdvertisementId == g.FirstOrDefault().AdvertisementId).FirstOrDefault()?.Name,
+                   CreatedAt = DateTimeToUnixTimeStamp(g.FirstOrDefault().CreatedAt),
                     OSAndValues = g.GroupBy(c => c.ClientOs).Select(c => new OSAndValue {
-                        OS = c.FirstOrDefault().ClientOs,
-                        Value = c.Count()
-                    }).ToList(),
-                })
+                       OS = c.FirstOrDefault().ClientOs,
+                       Value = c.Count()
+                   }).ToList(),
+               })
                 .ToList();
 
             return new LinkLogsGetResponse
